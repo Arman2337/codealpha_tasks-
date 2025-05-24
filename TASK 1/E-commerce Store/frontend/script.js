@@ -1,8 +1,8 @@
-// Global variables
+
 let allProducts = [];
 const API_URL = 'http://localhost:5000/api';
 
-// DOM Elements
+
 const productList = document.getElementById('product-list');
 const loading = document.getElementById('loading');
 const error = document.getElementById('error');
