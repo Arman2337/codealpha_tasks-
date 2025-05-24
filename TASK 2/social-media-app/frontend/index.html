@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media App</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Auth Container -->
+    <div id="auth-container" class="container">
+        <div class="auth-box">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="login">Login</button>
+                <button class="tab-btn" data-tab="register">Register</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form active">
+                <h2>Login</h2>
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+                <div class="error-message"></div>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" class="auth-form">
+                <h2>Register</h2>
+                <div class="form-group">
+                    <label for="register-username">Username</label>
+                    <input type="text" id="register-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-email">Email</label>
+                    <input type="email" id="register-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Password</label>
+                    <input type="password" id="register-password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Register</button>
+                <div class="error-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App Container (Hidden initially) -->
+    <div id="app-container" class="container hidden">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <h1>Social Media</h1>
+            </div>
+            <div class="nav-links">
+                <button id="home-btn" class="nav-btn active">
+                    <i class="fas fa-home"></i> Home
+                </button>
+                <button id="profile-btn" class="nav-btn">
+                    <i class="fas fa-user"></i> Profile
+                </button>
+                <button id="create-post-btn" class="nav-btn">
+                    <i class="fas fa-plus"></i> New Post
+                </button>
+                <button id="logout-btn" class="nav-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Feed Section -->
+            <section id="feed-section" class="content-section active">
+                <div class="posts-container"></div>
+            </section>
+
+            <!-- Profile Section -->
+            <section id="profile-section" class="content-section">
+                <div class="profile-header">
+                    <div class="profile-info">
+                        <img id="profile-picture" src="images/default-profile.png" alt="Profile Picture">
+                        <div class="profile-details">
+                            <h2 id="profile-username"></h2>
+                            <p id="profile-bio"></p>
+                            <div class="profile-stats">
+                                <span id="followers-count">0 followers</span>
+                                <span id="following-count">0 following</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="edit-profile-btn" class="btn btn-secondary">Edit Profile</button>
+                </div>
+                <div class="profile-posts"></div>
+            </section>
+
+            <!-- Create Post Section -->
+            <section id="create-post-section" class="content-section">
+                <form id="create-post-form" class="post-form">
+                    <div class="form-group">
+                        <label for="post-image">Image</label>
+                        <input type="file" id="post-image" accept="image/*" required>
+                        <div class="image-preview"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="post-caption">Caption</label>
+                        <textarea id="post-caption" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Post</button>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Edit Profile</h2>
+            <form id="edit-profile-form">
+                <div class="form-group">
+                    <label for="edit-bio">Bio</label>
+                    <textarea id="edit-bio" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-profile-picture">Profile Picture</label>
+                    <input type="file" id="edit-profile-picture" accept="image/*">
+                    <div class="image-preview"></div>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" id="close-modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
