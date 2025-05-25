@@ -61,10 +61,8 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
 // Get all posts (feed)
 router.get('/feed', auth, async (req, res) => {
     try {
-        const user = await User.findById(req.user._id);
-        const followingIds = [...user.following, user._id];
-
-        const posts = await Post.find({ user: { $in: followingIds } })
+        // Show all posts to everyone
+        const posts = await Post.find()
             .sort({ createdAt: -1 })
             .populate('user', 'username profilePicture')
             .populate('comments.user', 'username profilePicture');
