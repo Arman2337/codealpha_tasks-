@@ -3,50 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Social Media App</title>
+    <title>SocialPulse - Share Your Moments</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Auth Container -->
     <div id="auth-container" class="container">
         <div class="auth-box">
+            <div class="brand-header">
+                <h1>SocialPulse</h1>
+                <p class="tagline">Connect, Share, and Celebrate Life's Moments</p>
+            </div>
             <div class="tabs">
-                <button class="tab-btn active" data-tab="login">Login</button>
-                <button class="tab-btn" data-tab="register">Register</button>
+                <button class="tab-btn" data-tab="login">Login</button>
+                <button class="tab-btn active" data-tab="register">Register</button>
             </div>
 
             <!-- Login Form -->
-            <form id="login-form" class="auth-form active">
-                <h2>Login</h2>
+            <form id="login-form" class="auth-form">
                 <div class="form-group">
-                    <label for="login-email">Email</label>
-                    <input type="email" id="login-email" required>
+                    <input type="email" id="login-email" placeholder="Email" required>
                 </div>
                 <div class="form-group">
-                    <label for="login-password">Password</label>
-                    <input type="password" id="login-password" required>
+                    <input type="password" id="login-password" placeholder="Password" required>
                 </div>
-                <button type="submit" class="btn btn-primary">Login</button>
+                <button type="submit" class="btn btn-primary">Log In</button>
                 <div class="error-message"></div>
             </form>
 
             <!-- Register Form -->
-            <form id="register-form" class="auth-form">
-                <h2>Register</h2>
+            <form id="register-form" class="auth-form active">
                 <div class="form-group">
-                    <label for="register-username">Username</label>
-                    <input type="text" id="register-username" required>
+                    <input type="email" id="register-email" placeholder="Email" required>
                 </div>
                 <div class="form-group">
-                    <label for="register-email">Email</label>
-                    <input type="email" id="register-email" required>
+                    <input type="text" id="register-username" placeholder="Username" required>
                 </div>
                 <div class="form-group">
-                    <label for="register-password">Password</label>
-                    <input type="password" id="register-password" required>
+                    <input type="password" id="register-password" placeholder="Password" required>
                 </div>
-                <button type="submit" class="btn btn-primary">Register</button>
+                <button type="submit" class="btn btn-primary">Sign Up</button>
                 <div class="error-message"></div>
             </form>
         </div>
@@ -57,20 +55,36 @@
         <!-- Navigation -->
         <nav class="navbar">
             <div class="nav-brand">
-                <h1>Social Media</h1>
+                <h1>SocialPulse</h1>
+            </div>
+            <div class="nav-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search">
             </div>
             <div class="nav-links">
                 <button id="home-btn" class="nav-btn active">
-                    <i class="fas fa-home"></i> Home
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
                 </button>
-                <button id="profile-btn" class="nav-btn">
-                    <i class="fas fa-user"></i> Profile
+                <button id="explore-btn" class="nav-btn">
+                    <i class="fas fa-compass"></i>
+                    <span>Explore</span>
                 </button>
                 <button id="create-post-btn" class="nav-btn">
-                    <i class="fas fa-plus"></i> New Post
+                    <i class="fas fa-plus-square"></i>
+                    <span>Create</span>
+                </button>
+                <button id="activity-btn" class="nav-btn">
+                    <i class="fas fa-heart"></i>
+                    <span>Activity</span>
+                </button>
+                <button id="profile-btn" class="nav-btn">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
                 </button>
                 <button id="logout-btn" class="nav-btn">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
                 </button>
             </div>
         </nav>
@@ -82,39 +96,107 @@
                 <div class="posts-container"></div>
             </section>
 
+            <!-- Explore Section -->
+            <section id="explore-section" class="content-section">
+                <div class="explore-grid">
+                    <!-- Explore grid items will be dynamically added here -->
+                </div>
+            </section>
+
+            <!-- Activity Section -->
+            <section id="activity-section" class="content-section">
+                <div class="activity-container">
+                    <h2>Activity</h2>
+                    <div class="activity-tabs">
+                        <button class="activity-tab active">Following</button>
+                        <button class="activity-tab">You</button>
+                    </div>
+                    <div class="activity-feed">
+                        <!-- Activity items will be dynamically added here -->
+                    </div>
+                </div>
+            </section>
+
             <!-- Profile Section -->
             <section id="profile-section" class="content-section">
                 <div class="profile-header">
                     <div class="profile-info">
-                        <img id="profile-picture" src="images/default-profile.png" alt="Profile Picture">
+                        <div class="profile-picture-container">
+                            <img id="profile-picture" src="images/default-profile.png" alt="Profile Picture">
+                            <button id="edit-profile-picture-btn" class="edit-picture-btn">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                        </div>
                         <div class="profile-details">
-                            <h2 id="profile-username"></h2>
-                            <p id="profile-bio"></p>
+                            <div class="profile-header-top">
+                                <h2 id="profile-username"></h2>
+                                <button id="edit-profile-btn" class="btn btn-secondary">Edit Profile</button>
+                                <button id="share-profile-btn" class="btn btn-secondary">
+                                    <i class="fas fa-share"></i>
+                                </button>
+                            </div>
                             <div class="profile-stats">
-                                <span id="followers-count">0 followers</span>
-                                <span id="following-count">0 following</span>
+                                <span><strong id="posts-count">0</strong> posts</span>
+                                <span id="followers-count"><strong>0</strong> followers</span>
+                                <span id="following-count"><strong>0</strong> following</span>
+                            </div>
+                            <div class="profile-bio-container">
+                                <h3 id="profile-name"></h3>
+                                <p id="profile-bio"></p>
                             </div>
                         </div>
                     </div>
-                    <button id="edit-profile-btn" class="btn btn-secondary">Edit Profile</button>
                 </div>
-                <div class="profile-posts"></div>
+                <div class="profile-tabs">
+                    <button class="profile-tab active">
+                        <i class="fas fa-th"></i> POSTS
+                    </button>
+                    <button class="profile-tab">
+                        <i class="fas fa-bookmark"></i> SAVED
+                    </button>
+                    <button class="profile-tab">
+                        <i class="fas fa-tag"></i> TAGGED
+                    </button>
+                </div>
+                <div class="profile-posts-grid">
+                    <!-- Profile posts will be dynamically added here -->
+                </div>
             </section>
 
             <!-- Create Post Section -->
             <section id="create-post-section" class="content-section">
-                <form id="create-post-form" class="post-form">
-                    <div class="form-group">
-                        <label for="post-image">Image</label>
-                        <input type="file" id="post-image" accept="image/*" required>
-                        <div class="image-preview"></div>
-                    </div>
-                    <div class="form-group">
-                        <label for="post-caption">Caption</label>
-                        <textarea id="post-caption" rows="3"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Post</button>
-                </form>
+                <div class="create-post-container">
+                    <h2>Create New Post</h2>
+                    <form id="create-post-form" class="post-form">
+                        <div class="form-group">
+                            <div class="image-upload-container">
+                                <input type="file" id="post-image" accept="image/*" required>
+                                <div class="image-upload-placeholder">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Drag photos and videos here</p>
+                                    <button type="button" class="btn btn-primary">Select from computer</button>
+                                </div>
+                                <div class="image-preview"></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <textarea id="post-caption" placeholder="Write a caption..." rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <div class="post-options">
+                                <label>
+                                    <input type="checkbox" id="allow-comments">
+                                    Allow comments
+                                </label>
+                                <label>
+                                    <input type="checkbox" id="show-likes">
+                                    Show likes
+                                </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Share</button>
+                    </form>
+                </div>
             </section>
         </main>
     </div>
@@ -122,28 +204,59 @@
     <!-- Edit Profile Modal -->
     <div id="edit-profile-modal" class="modal hidden">
         <div class="modal-content">
-            <h2>Edit Profile</h2>
+            <div class="modal-header">
+                <h2>Edit Profile</h2>
+                <button type="button" class="close-modal" id="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
             <form id="edit-profile-form">
                 <div class="form-group">
+                    <label for="edit-name">Name</label>
+                    <input type="text" id="edit-name" placeholder="Name">
+                </div>
+                <div class="form-group">
+                    <label for="edit-username">Username</label>
+                    <input type="text" id="edit-username" placeholder="Username">
+                </div>
+                <div class="form-group">
                     <label for="edit-bio">Bio</label>
-                    <textarea id="edit-bio" rows="3"></textarea>
+                    <textarea id="edit-bio" rows="3" placeholder="Write a bio..."></textarea>
                 </div>
                 <div class="form-group">
                     <label for="edit-profile-picture">Profile Picture</label>
-                    <input type="file" id="edit-profile-picture" accept="image/*">
-                    <div class="image-preview"></div>
+                    <div class="image-upload-container">
+                        <input type="file" id="edit-profile-picture" accept="image/*">
+                        <div class="image-preview"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="edit-email">Email</label>
+                    <input type="email" id="edit-email" placeholder="Email">
                 </div>
                 <div class="modal-buttons">
                     <button type="submit" class="btn btn-primary">Save</button>
-                    <button type="button" class="btn btn-secondary" id="close-modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-edit">Cancel</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Post Modal -->
+    <div id="post-modal" class="modal hidden">
+        <div class="modal-content post-modal-content">
+            <button type="button" class="close-modal" id="close-post-modal">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="post-modal-container">
+                <!-- Post content will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
     <script src="js/config.js"></script>
-    <script src="js/auth.js"></script>
     <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/app.js"></script>
 </body>
