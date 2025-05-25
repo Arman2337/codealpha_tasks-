@@ -1,6 +1,7 @@
 class ApiService {
     constructor() {
         this.token = localStorage.getItem(STORAGE_KEYS.token);
+        this.baseUrl = API_BASE_URL.replace('/api', ''); // Remove /api to get base URL
     }
 
     // Helper method to set auth token
@@ -79,7 +80,11 @@ class ApiService {
     }
 
     async getCurrentUser() {
-        return this.fetch(API_ENDPOINTS.me);
+        const user = await this.fetch(API_ENDPOINTS.me);
+        return {
+            ...user,
+            profilePicture: this.transformImageUrl(user.profilePicture)
+        };
     }
 
     // User API methods
@@ -111,7 +116,12 @@ class ApiService {
             throw new Error(data.message || 'Error updating profile');
         }
 
-        return response.json();
+        const data = await response.json();
+        // Transform image URL in response
+        if (data.profilePicture) {
+            data.profilePicture = this.transformImageUrl(data.profilePicture);
+        }
+        return data;
     }
 
     async followUser(userId) {
@@ -155,15 +165,55 @@ class ApiService {
             throw new Error(data.message || 'Error creating post');
         }
 
-        return response.json();
+        const data = await response.json();
+        // Transform image URL in response
+        if (data.image) {
+            data.image = this.transformImageUrl(data.image);
+        }
+        return data;
     }
 
     async getFeed() {
-        return this.fetch(API_ENDPOINTS.feed);
+        const posts = await this.fetch(API_ENDPOINTS.feed);
+        return posts.map(post => ({
+            ...post,
+            image: this.transformImageUrl(post.image),
+            user: {
+                ...post.user,
+                profilePicture: this.transformImageUrl(post.user.profilePicture)
+            },
+            comments: post.comments.map(comment => ({
+                ...comment,
+                user: {
+                    ...comment.user,
+                    profilePicture: this.transformImageUrl(comment.user.profilePicture)
+                }
+            }))
+        }));
+    }
+
+    async getExplorePosts() {
+        // For now, just return all posts (same as feed)
+        return this.getFeed();
     }
 
     async getUserPosts(userId) {
-        return this.fetch(API_ENDPOINTS.userPosts(userId));
+        const posts = await this.fetch(API_ENDPOINTS.userPosts(userId));
+        return posts.map(post => ({
+            ...post,
+            image: this.transformImageUrl(post.image),
+            user: {
+                ...post.user,
+                profilePicture: this.transformImageUrl(post.user.profilePicture)
+            },
+            comments: post.comments.map(comment => ({
+                ...comment,
+                user: {
+                    ...comment.user,
+                    profilePicture: this.transformImageUrl(comment.user.profilePicture)
+                }
+            }))
+        }));
     }
 
     async getPost(postId) {
@@ -193,6 +243,20 @@ class ApiService {
         return this.fetch(API_ENDPOINTS.deleteComment(postId, commentId), {
             method: 'DELETE'
         });
+    }
+
+    // Add this method for activity
+    async getActivity() {
+        // Placeholder: Return empty array as there is no backend endpoint yet
+        console.log('Fetching activity data (placeholder)');
+        return [];
+    }
+
+    // Helper method to transform image URLs
+    transformImageUrl(url) {
+        if (!url) return DEFAULT_PROFILE_PICTURE;
+        if (url.startsWith('http')) return url;
+        return `${this.baseUrl}/${url}`;
     }
 }
 
