@@ -912,7 +912,7 @@ body {
     padding: 2rem;
     border-radius: 16px;
     box-shadow: var(--shadow-lg);
-}
+} 
 
 /* Auth Form Styles */
 .auth-form {
