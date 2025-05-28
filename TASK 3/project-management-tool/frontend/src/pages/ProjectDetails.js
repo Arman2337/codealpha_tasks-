@@ -12,7 +12,7 @@ import {
   Alert
 } from 'react-bootstrap';
 import { FaEdit, FaTrash, FaPlus, FaUser, FaComment } from 'react-icons/fa';
-import axios from 'axios';
+import axiosInstance from 'axios';
 
 const ProjectDetails = () => {
   const { id } = useParams();
@@ -28,8 +28,9 @@ const ProjectDetails = () => {
   }, [id]);
 
   const fetchProjectDetails = async () => {
+    const token = localStorage.getItem("token");
     try {
-      const res = await axios.get(`/api/projects/${id}`);
+      const res = await axiosInstance.get(`/api/projects/${id}`);
       setProject(res.data);
     } catch (err) {
       setError('Failed to fetch project details');
@@ -43,7 +44,7 @@ const ProjectDetails = () => {
     if (!newTask.trim()) return;
 
     try {
-      const res = await axios.post(`/api/projects/${id}/tasks`, {
+      const res = await axiosInstance.post(`/api/projects/${id}/tasks`, {
         title: newTask
       });
       setProject({ ...project, tasks: [...project.tasks, res.data] });
@@ -58,7 +59,7 @@ const ProjectDetails = () => {
     if (!newComment.trim()) return;
 
     try {
-      const res = await axios.post(`/api/projects/${id}/comments`, {
+      const res = await axiosInstance.post(`/api/projects/${id}/comments`, {
         content: newComment
       });
       setProject({ ...project, comments: [...project.comments, res.data] });
@@ -71,7 +72,7 @@ const ProjectDetails = () => {
   const handleDeleteProject = async () => {
     if (window.confirm('Are you sure you want to delete this project?')) {
       try {
-        await axios.delete(`/api/projects/${id}`);
+        await axiosInstance.delete(`/api/projects/${id}`);
         navigate('/dashboard');
       } catch (err) {
         setError('Failed to delete project');
