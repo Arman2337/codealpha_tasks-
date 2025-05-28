@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { FaPlus, FaProjectDiagram, FaTasks, FaUsers } from 'react-icons/fa';
-import axios from 'axios';
+import axiosInstance from '../utils/axios';
 
 const Dashboard = () => {
   const [projects, setProjects] = useState([]);
@@ -15,7 +15,7 @@ const Dashboard = () => {
 
   const fetchProjects = async () => {
     try {
-      const res = await axios.get('/api/projects');
+      const res = await axiosInstance.get('/api/projects');
       setProjects(res.data);
     } catch (err) {
       setError('Failed to fetch projects');
