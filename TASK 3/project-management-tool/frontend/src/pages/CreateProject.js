@@ -1,19 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../utils/axios';
+import { AuthContext } from '../context/AuthContext';
 
 const CreateProject = () => {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     startDate: '',
     endDate: '',
-    members: []
+    members: [],
+    createdBy: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [dateError, setDateError] = useState('');
+
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
+
+  useEffect(() => {
+    // Check authentication and set user ID
+    if (!isAuthenticated || !user.id) {
+      navigate('/login');
+      return;
+    }
+    
+    setFormData(prevData => ({
+      ...prevData,
+      createdBy: user.id
+    }));
+  }, [isAuthenticated, user, navigate]);
+
+  useEffect(() => {
+    // Validate dates whenever they change
+    if (formData.startDate && formData.endDate) {
+      const start = new Date(formData.startDate);
+      const end = new Date(formData.endDate);
+      
+      if (end < start) {
+        setDateError('End date must be after start date');
+      } else {
+        setDateError('');
+      }
+    }
+  }, [formData.startDate, formData.endDate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -23,13 +57,45 @@ const CreateProject = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Check if user ID exists
+    if (!formData.createdBy) {
+      setError('User not authenticated. Please login again.');
+      return;
+    }
+
+    // Validate dates before submission
+    if (formData.startDate && formData.endDate) {
+      const start = new Date(formData.startDate);
+      const end = new Date(formData.endDate);
+      
+      if (end < start) {
+        setDateError('End date must be after start date');
+        return;
+      }
+    }
+
+    if (dateError) {
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await axios.post('/api/projects', formData);
+      console.log('Sending request to:', 'http://localhost:5000/api/projects');
+      const res = await axiosInstance.post('/api/projects', formData);
+      console.log('Project created successfully:', res.data);
       navigate(`/project/${res.data._id}`);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create project');
+      console.error('Error creating project:', err.response || err);
+      if (err.response?.status === 401) {
+        setError('Session expired. Please login again.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+      } else {
+        setError(err.response?.data?.message || 'Failed to create project');
+      }
     } finally {
       setLoading(false);
     }
@@ -78,8 +144,12 @@ const CreateProject = () => {
                         name="startDate"
                         value={formData.startDate}
                         onChange={handleChange}
+                        min={today}
                         required
                       />
+                      <Form.Text className="text-muted">
+                        Select a future date
+                      </Form.Text>
                     </Form.Group>
                   </Col>
                   <Col md={6}>
@@ -90,8 +160,14 @@ const CreateProject = () => {
                         name="endDate"
                         value={formData.endDate}
                         onChange={handleChange}
+                        min={formData.startDate || today}
                         required
                       />
+                      {dateError && (
+                        <Form.Text className="text-danger">
+                          {dateError}
+                        </Form.Text>
+                      )}
                     </Form.Group>
                   </Col>
                 </Row>
