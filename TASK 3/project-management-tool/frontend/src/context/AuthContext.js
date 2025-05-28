@@ -4,8 +4,12 @@ import axios from '../utils/axios';
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(() => {
+    // Initialize user from localStorage if available
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+  const [isAuthenticated, setIsAuthenticated] = useState(!!user);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,11 +21,15 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (token) {
         const res = await axios.get('/api/users/me');
-        setUser(res.data);
+        const userData = res.data;
+        console.log('User data fetched:', userData);
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
         setIsAuthenticated(true);
       }
     } catch (err) {
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       setUser(null);
       setIsAuthenticated(false);
     } finally {
@@ -32,9 +40,10 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const res = await axios.post('/api/auth/login', { email, password });
-      const { token, user } = res.data;
+      const { token, user: userData } = res.data;
       localStorage.setItem('token', token);
-      setUser(user);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
       setIsAuthenticated(true);
       return { success: true };
     } catch (err) {
@@ -52,9 +61,10 @@ export const AuthProvider = ({ children }) => {
         email,
         password
       });
-      const { token, user } = res.data;
+      const { token, user: userData } = res.data;
       localStorage.setItem('token', token);
-      setUser(user);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
       setIsAuthenticated(true);
       return { success: true };
     } catch (err) {
@@ -67,6 +77,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setUser(null);
     setIsAuthenticated(false);
   };
