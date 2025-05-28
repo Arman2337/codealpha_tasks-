@@ -4,6 +4,7 @@ const { body } = require('express-validator');
 const Project = require('../models/Project');
 const { auth } = require('../middleware/auth');
 const validate = require('../middleware/validate');
+const mongoose = require('mongoose');
 
 // Validation rules
 const projectRules = [
@@ -75,6 +76,14 @@ router.get('/', auth, async (req, res) => {
 // Get project by ID
 router.get('/:id', auth, async (req, res) => {
   try {
+    console.log('Fetching project with ID:', req.params.id);
+    console.log('User ID:', req.user._id);
+
+    // Validate project ID format
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid project ID format' });
+    }
+
     const project = await Project.findById(req.params.id)
       .populate('owner', 'username email')
       .populate('members', 'username email')
@@ -86,19 +95,32 @@ router.get('/:id', auth, async (req, res) => {
         }
       });
 
+    console.log('Project found:', project ? 'Yes' : 'No');
+
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
 
     // Check if user has access to the project
-    if (!project.owner.equals(req.user._id) && 
-        !project.members.some(member => member._id.equals(req.user._id))) {
+    const isOwner = project.owner._id.toString() === req.user._id.toString();
+    const isMember = project.members.some(member => 
+      member._id.toString() === req.user._id.toString()
+    );
+
+    console.log('User is owner:', isOwner);
+    console.log('User is member:', isMember);
+
+    if (!isOwner && !isMember) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
     res.json(project);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error fetching project:', error);
+    res.status(500).json({ 
+      message: 'Server error',
+      error: error.message 
+    });
   }
 });
 
