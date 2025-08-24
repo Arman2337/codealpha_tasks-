@@ -2,26 +2,11 @@ const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
     customer: {
-        name: {
-            type: String,
-            required: true
-        },
-        email: {
-            type: String,
-            required: true
-        },
-        address: {
-            type: String,
-            required: true
-        },
-        city: {
-            type: String,
-            required: true
-        },
-        zip: {
-            type: String,
-            required: true
-        }
+        name: { type: String, required: true, trim: true },
+        email: { type: String, required: true, trim: true },
+        address: { type: String, required: true, trim: true },
+        city: { type: String, required: true, trim: true },
+        zip: { type: String, required: true, trim: true }
     },
     items: [{
         productId: {
@@ -34,7 +19,7 @@ const orderSchema = new mongoose.Schema({
             required: true,
             min: 1
         },
-        price: {
+        price: { // The price of the item at the time of purchase
             type: Number,
             required: true,
             min: 0
@@ -46,7 +31,7 @@ const orderSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'processing', 'shipped', 'delivered'],
+        enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
         default: 'pending'
     },
     createdAt: {
@@ -55,10 +40,6 @@ const orderSchema = new mongoose.Schema({
     }
 });
 
-// Calculate total before saving
-orderSchema.pre('save', function(next) {
-    this.total = this.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    next();
-});
+// The pre-save hook for calculating total has been REMOVED.
 
-module.exports = mongoose.model('Order', orderSchema); 
+module.exports = mongoose.model('Order', orderSchema);
