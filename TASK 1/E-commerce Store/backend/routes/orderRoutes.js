@@ -8,39 +8,67 @@ router.post('/', async (req, res) => {
     try {
         const { customer, items } = req.body;
 
-        // Validate that all products exist
+        // --- Step 1: Calculate total and validate products (This part is already correct) ---
+        let calculatedTotal = 0;
+        const processedItems = [];
+
         for (const item of items) {
             const product = await Product.findById(item.productId);
             if (!product) {
-                return res.status(400).json({ 
-                    message: `Product with ID ${item.productId} not found` 
-                });
+                return res.status(404).json({ message: `Product with ID ${item.productId} not found.` });
             }
-            // Use the current product price
-            item.price = product.price;
+            // Check if there is enough stock
+            if (product.stock < item.quantity) {
+                return res.status(400).json({ message: `Not enough stock for ${product.name}. Only ${product.stock} left.` });
+            }
+            calculatedTotal += product.price * item.quantity;
+            processedItems.push({
+                productId: item.productId,
+                quantity: item.quantity,
+                price: product.price
+            });
         }
 
         const order = new Order({
             customer,
-            items
+            items: processedItems,
+            total: calculatedTotal
+        });
+        
+        // Save the new order to the database
+        const savedOrder = await order.save();
+
+        // --- Step 2: Update stock quantities (THIS IS THE NEW LOGIC) ---
+        // We create an array of update operations
+        const stockUpdatePromises = savedOrder.items.map(item => {
+            return Product.findByIdAndUpdate(item.productId, {
+                // Use the $inc operator to increment the stock by a negative number (to decrease it)
+                $inc: { stock: -item.quantity } 
+            });
         });
 
-        await order.save();
-        res.status(201).json(order);
+        // Execute all the update operations
+        await Promise.all(stockUpdatePromises);
+        
+        // --- End of new logic ---
+
+        res.status(201).json(savedOrder);
+
     } catch (err) {
-        console.error('Error creating order:', err);
+        console.error('Error creating order:', err); 
         res.status(500).json({ 
-            message: 'Error creating order',
+            message: 'Error creating order on the server.',
             error: err.message 
         });
     }
 });
 
+// (The rest of the file remains the same)
 // Get all orders (for admin use)
 router.get('/', async (req, res) => {
     try {
         const orders = await Order.find()
-            .populate('items.productId')
+            .populate('items.productId', 'name price image')
             .sort({ createdAt: -1 });
         res.json(orders);
     } catch (err) {
@@ -55,7 +83,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const order = await Order.findById(req.params.id)
-            .populate('items.productId');
+            .populate('items.productId', 'name price image');
         
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
@@ -74,14 +102,20 @@ router.get('/:id', async (req, res) => {
 router.patch('/:id/status', async (req, res) => {
     try {
         const { status } = req.body;
-        const order = await Order.findById(req.params.id);
+        const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ message: 'Invalid status value.' });
+        }
+
+        const order = await Order.findByIdAndUpdate(
+            req.params.id, 
+            { status }, 
+            { new: true }
+        );
         
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
-        
-        order.status = status;
-        await order.save();
         
         res.json(order);
     } catch (err) {
@@ -92,4 +126,4 @@ router.patch('/:id/status', async (req, res) => {
     }
 });
 
-module.exports = router; 
+module.exports = router;
