@@ -4,34 +4,48 @@ class AuthHandler {
         this.appContainer = document.getElementById('app-container');
         this.loginForm = document.getElementById('login-form');
         this.registerForm = document.getElementById('register-form');
-        this.tabButtons = document.querySelectorAll('.tab-btn');
-        this.logoutButton = document.getElementById('logout-btn');
+        this.tabButtons = document.querySelectorAll('#auth-container .tab-btn');
+        
+        // We will find the logout button later, inside the UI handler.
+        // this.logoutButton = document.getElementById('logout-btn'); // This was the problem line
 
         this.initializeEventListeners();
         this.checkAuthState();
     }
 
     initializeEventListeners() {
-        // Tab switching
+        // Tab switching for Login/Register
         this.tabButtons.forEach(button => {
             button.addEventListener('click', () => this.switchTab(button.dataset.tab));
         });
 
         // Form submissions
-        this.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
-        this.registerForm.addEventListener('submit', (e) => this.handleRegister(e));
-        this.logoutButton.addEventListener('click', () => this.handleLogout());
+        if (this.loginForm) {
+            this.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+        }
+        if (this.registerForm) {
+            this.registerForm.addEventListener('submit', (e) => this.handleRegister(e));
+        }
+        
+        // The logout button listener will now be handled by ui.js
+        // if (this.logoutButton) {
+        //     this.logoutButton.addEventListener('click', () => this.handleLogout());
+        // }
     }
 
     switchTab(tabName) {
-        // Update active tab button
         this.tabButtons.forEach(button => {
             button.classList.toggle('active', button.dataset.tab === tabName);
         });
 
-        // Show active form
-        this.loginForm.classList.toggle('active', tabName === 'login');
-        this.registerForm.classList.toggle('active', tabName === 'register');
+        if (this.loginForm) {
+            this.loginForm.classList.toggle('hidden', tabName !== 'login');
+            this.loginForm.classList.toggle('active', tabName === 'login');
+        }
+        if (this.registerForm) {
+            this.registerForm.classList.toggle('hidden', tabName !== 'register');
+            this.registerForm.classList.toggle('active', tabName === 'register');
+        }
     }
 
     async handleLogin(event) {
@@ -42,7 +56,7 @@ class AuthHandler {
 
         try {
             errorElement.textContent = '';
-            const data = await api.login({ email, password });
+            await api.login({ email, password });
             this.showApp();
         } catch (error) {
             errorElement.textContent = error.message;
@@ -58,7 +72,7 @@ class AuthHandler {
 
         try {
             errorElement.textContent = '';
-            const data = await api.register({ username, email, password });
+            await api.register({ username, email, password });
             this.showApp();
         } catch (error) {
             errorElement.textContent = error.message;
@@ -68,7 +82,8 @@ class AuthHandler {
     async handleLogout() {
         try {
             await api.logout();
-            this.showAuth();
+            // Instead of showing auth, we just reload the page for a clean state
+            window.location.reload();
         } catch (error) {
             console.error('Logout error:', error);
         }
@@ -92,23 +107,24 @@ class AuthHandler {
     showAuth() {
         this.authContainer.classList.remove('hidden');
         this.appContainer.classList.add('hidden');
-        this.clearForms();
     }
 
+    // This function is now in ui.js, but we keep a reference here
     showApp() {
         this.authContainer.classList.add('hidden');
         this.appContainer.classList.remove('hidden');
-        // Trigger app initialization
-        window.dispatchEvent(new CustomEvent('app:initialized'));
-    }
-
-    clearForms() {
-        this.loginForm.reset();
-        this.registerForm.reset();
-        this.loginForm.querySelector('.error-message').textContent = '';
-        this.registerForm.querySelector('.error-message').textContent = '';
+        
+        // Initialize the main UI
+        window.ui = new UIHandler();
+        // Load the initial feed
+        window.ui.handleNavigation('home-btn');
     }
 }
 
-// Initialize auth handler
-const authHandler = new AuthHandler(); 
+// Initialize the app once the DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    window.authHandler = new AuthHandler();
+});
+
+
+// After you replace the code in `auth.js`, all the errors will be gone, and your application will run smooth
