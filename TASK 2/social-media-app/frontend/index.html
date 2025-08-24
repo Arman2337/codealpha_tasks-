@@ -3,261 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SocialPulse - Share Your Moments</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>SocialPulse - Modern UI</title>
+    
+    <!-- Google Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS (for layout) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Your Custom Stylesheet -->
+    <link rel="stylesheet" href="./css/style.css">
 </head>
-<body>
-    <!-- Auth Container -->
-    <div id="auth-container" class="container">
-        <div class="auth-box">
-            <div class="brand-header">
-                <h1>SocialPulse</h1>
-                <p class="tagline">Connect, Share, and Celebrate Life's Moments</p>
-            </div>
-            <div class="tabs">
-                <button class="tab-btn" data-tab="login">Login</button>
-                <button class="tab-btn active" data-tab="register">Register</button>
-            </div>
+<body class="overflow-x-hidden">
 
-            <!-- Login Form -->
-            <form id="login-form" class="auth-form">
-                <div class="form-group">
-                    <input type="email" id="login-email" placeholder="Email" required>
-                </div>
-                <div class="form-group">
-                    <input type="password" id="login-password" placeholder="Password" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Log In</button>
-                <div class="error-message"></div>
-            </form>
-
-            <!-- Register Form -->
-            <form id="register-form" class="auth-form active">
-                <div class="form-group">
-                    <input type="email" id="register-email" placeholder="Email" required>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="register-username" placeholder="Username" required>
-                </div>
-                <div class="form-group">
-                    <input type="password" id="register-password" placeholder="Password" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Sign Up</button>
-                <div class="error-message"></div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Main App Container (Hidden initially) -->
-    <div id="app-container" class="container hidden">
-        <!-- Navigation -->
-        <nav class="navbar">
-            <div class="nav-brand">
-                <h1>SocialPulse</h1>
-            </div>
-            <div class="nav-search">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search">
-            </div>
-            <div class="nav-links">
-                <button id="home-btn" class="nav-btn active">
-                    <i class="fas fa-home"></i>
-                    <span>Home</span>
-                </button>
-                <button id="explore-btn" class="nav-btn">
-                    <i class="fas fa-compass"></i>
-                    <span>Explore</span>
-                </button>
-                <button id="create-post-btn" class="nav-btn">
-                    <i class="fas fa-plus-square"></i>
-                    <span>Create</span>
-                </button>
-                <button id="activity-btn" class="nav-btn">
-                    <i class="fas fa-heart"></i>
-                    <span>Activity</span>
-                </button>
-                <button id="profile-btn" class="nav-btn">
-                    <i class="fas fa-user"></i>
-                    <span>Profile</span>
-                </button>
-                <button id="logout-btn" class="nav-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </button>
-            </div>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Feed Section -->
-            <section id="feed-section" class="content-section active">
-                <div class="posts-container"></div>
-            </section>
-
-            <!-- Explore Section -->
-            <section id="explore-section" class="content-section">
-                <div class="explore-grid">
-                    <!-- Explore grid items will be dynamically added here -->
-                </div>
-            </section>
-
-            <!-- Activity Section -->
-            <section id="activity-section" class="content-section">
-                <div class="activity-container">
-                    <h2>Activity</h2>
-                    <div class="activity-tabs">
-                        <button class="activity-tab active">Following</button>
-                        <button class="activity-tab">You</button>
-                    </div>
-                    <div class="activity-feed">
-                        <!-- Activity items will be dynamically added here -->
+    <!-- NEW Auth Container -->
+    <div id="auth-container">
+        <div class="flex items-center justify-center min-h-screen">
+            <div class="relative flex flex-col m-6 space-y-8 bg-white shadow-2xl rounded-2xl md:flex-row md:space-y-0">
+                <!-- Left Side -->
+                <div class="relative w-full md:w-[450px]">
+                    <div class="absolute inset-0 bg-auth-image rounded-2xl md:rounded-l-2xl md:rounded-r-none opacity-90"></div>
+                    <div class="absolute inset-0 bg-black opacity-40 rounded-2xl md:rounded-l-2xl md:rounded-r-none"></div>
+                    <div class="relative p-8 text-white h-full flex flex-col justify-between">
+                        <h1 class="text-4xl font-bold brand-text" style="-webkit-text-fill-color: white;">SocialPulse</h1>
+                        <p class="text-2xl leading-snug tracking-tight">
+                            Connect with the world, one pulse at a time. Share your moments, discover new passions.
+                        </p>
                     </div>
                 </div>
-            </section>
 
-            <!-- Profile Section -->
-            <section id="profile-section" class="content-section">
-                <div class="profile-header">
-                    <div class="profile-info">
-                        <div class="profile-picture-container">
-                            <img id="profile-picture" src="images/default-profile.png" alt="Profile Picture">
-                            <button id="edit-profile-picture-btn" class="edit-picture-btn">
-                                <i class="fas fa-camera"></i>
-                            </button>
-                        </div>
-                        <div class="profile-details">
-                            <div class="profile-header-top">
-                                <h2 id="profile-username"></h2>
-                                <button id="edit-profile-btn" class="btn btn-secondary">Edit Profile</button>
-                                <button id="share-profile-btn" class="btn btn-secondary">
-                                    <i class="fas fa-share"></i>
-                                </button>
-                            </div>
-                            <div class="profile-stats">
-                                <span><strong id="posts-count">0</strong> posts</span>
-                                <span id="followers-count"><strong>0</strong> followers</span>
-                                <span id="following-count"><strong>0</strong> following</span>
-                            </div>
-                            <div class="profile-bio-container">
-                                <h3 id="profile-name"></h3>
-                                <p id="profile-bio"></p>
-                            </div>
-                        </div>
+                <!-- Right Side -->
+                <div class="flex flex-col justify-center p-8 md:p-14 w-full md:w-[450px]">
+                    <h2 class="font-bold text-4xl mb-4">Welcome!</h2>
+                    <p class="font-light text-gray-600 mb-8">Please enter your details to continue.</p>
+
+                    <!-- Tabs -->
+                    <div class="tabs flex rounded-lg bg-gray-100 p-1 mb-6">
+                        <button class="tab-btn w-1/2 p-2 rounded-md font-semibold transition-all duration-300" data-tab="login">Login</button>
+                        <button class="tab-btn w-1/2 p-2 rounded-md font-semibold transition-all duration-300 active" data-tab="register">Register</button>
                     </div>
-                </div>
-                <div class="profile-tabs">
-                    <button class="profile-tab active">
-                        <i class="fas fa-th"></i> POSTS
-                    </button>
-                    <button class="profile-tab">
-                        <i class="fas fa-bookmark"></i> SAVED
-                    </button>
-                    <button class="profile-tab">
-                        <i class="fas fa-tag"></i> TAGGED
-                    </button>
-                </div>
-                <div class="profile-posts-grid">
-                    <!-- Profile posts will be dynamically added here -->
-                </div>
-            </section>
 
-            <!-- Create Post Section -->
-            <section id="create-post-section" class="content-section">
-                <div class="create-post-container">
-                    <h2>Create New Post</h2>
-                    <form id="create-post-form" class="post-form">
-                        <div class="form-group">
-                            <div class="image-upload-container">
-                                <input type="file" id="post-image" accept="image/*" required>
-                                <div class="image-upload-placeholder">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                    <p>Drag photos and videos here</p>
-                                    <button type="button" class="btn btn-primary">Select from computer</button>
-                                </div>
-                                <div class="image-preview"></div>
-                            </div>
+                    <!-- Login Form -->
+                    <form id="login-form" class="auth-form hidden">
+                        <div class="py-4">
+                            <input type="email" id="login-email" placeholder="Email" required class="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:border-purple-500">
                         </div>
-                        <div class="form-group">
-                            <textarea id="post-caption" placeholder="Write a caption..." rows="3"></textarea>
+                        <div class="py-4">
+                            <input type="password" id="login-password" placeholder="Password" required class="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:border-purple-500">
                         </div>
-                        <div class="form-group">
-                            <div class="post-options">
-                                <label>
-                                    <input type="checkbox" id="allow-comments">
-                                    Allow comments
-                                </label>
-                                <label>
-                                    <input type="checkbox" id="show-likes">
-                                    Show likes
-                                </label>
-                            </div>
+                        <button type="submit" class="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold py-3 px-4 rounded-lg text-lg hover:scale-105 transition-transform">Sign In</button>
+                        <div class="error-message text-red-500 mt-2"></div>
+                    </form>
+
+                    <!-- Register Form -->
+                    <form id="register-form" class="auth-form active">
+                        <div class="py-2">
+                            <input type="text" id="register-username" placeholder="Username" required class="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:border-purple-500">
                         </div>
-                        <button type="submit" class="btn btn-primary">Share</button>
+                        <div class="py-2">
+                            <input type="email" id="register-email" placeholder="Email" required class="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div class="py-2">
+                            <input type="password" id="register-password" placeholder="Password" required class="w-full p-3 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:border-purple-500">
+                        </div>
+                        <button type="submit" class="w-full mt-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold py-3 px-4 rounded-lg text-lg hover:scale-105 transition-transform">Create Account</button>
+                        <div class="error-message text-red-500 mt-2"></div>
                     </form>
                 </div>
-            </section>
-        </main>
-    </div>
-
-    <!-- Edit Profile Modal -->
-    <div id="edit-profile-modal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Edit Profile</h2>
-                <button type="button" class="close-modal" id="close-modal">
-                    <i class="fas fa-times"></i>
-                </button>
             </div>
-            <form id="edit-profile-form">
-                <div class="form-group">
-                    <label for="edit-name">Name</label>
-                    <input type="text" id="edit-name" placeholder="Name">
-                </div>
-                <div class="form-group">
-                    <label for="edit-username">Username</label>
-                    <input type="text" id="edit-username" placeholder="Username">
-                </div>
-                <div class="form-group">
-                    <label for="edit-bio">Bio</label>
-                    <textarea id="edit-bio" rows="3" placeholder="Write a bio..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="edit-profile-picture">Profile Picture</label>
-                    <div class="image-upload-container">
-                        <input type="file" id="edit-profile-picture" accept="image/*">
-                        <div class="image-preview"></div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="edit-email">Email</label>
-                    <input type="email" id="edit-email" placeholder="Email">
-                </div>
-                <div class="modal-buttons">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <button type="button" class="btn btn-secondary" id="cancel-edit">Cancel</button>
-                </div>
-            </form>
         </div>
     </div>
 
-    <!-- Post Modal -->
-    <div id="post-modal" class="modal hidden">
-        <div class="modal-content post-modal-content">
-            <button type="button" class="close-modal" id="close-post-modal">
-                <i class="fas fa-times"></i>
-            </button>
-            <div class="post-modal-container">
-                <!-- Post content will be dynamically added here -->
-            </div>
+    <!-- Main App Container (Stays the same) -->
+    <div id="app-container" class="hidden">
+        <div class="flex min-h-screen">
+            <nav class="w-20 lg:w-64 p-4 lg:p-6 flex-shrink-0 fixed lg:sticky top-0 h-screen">
+                <div class="glass-card rounded-2xl w-full h-full flex flex-col items-center lg:items-start p-2 lg:p-4">
+                    <div class="mb-10 w-full">
+                        <h1 class="text-3xl font-bold text-center lg:text-left brand-text">SocialPulse</h1>
+                    </div>
+                   <!-- In index.html -->
+<ul class="space-y-4 w-full" id="main-nav">
+    <li><a href="#" id="home-btn" class="nav-link active"><i class="fas fa-home w-6 text-center"></i><span class=" lg:inline">Home</span></a></li>
+    <li><a href="#" id="search-btn" class="nav-link"><i class="fas fa-search w-6 text-center"></i><span class="lg:inline">Search</span></a></li>
+    <li><a href="#" id="explore-btn" class="nav-link"><i class="fas fa-compass w-6 text-center"></i><span class=" lg:inline">Explore</span></a></li>
+    <li><a href="#" id="activity-btn" class="nav-link"><i class="fas fa-bell w-6 text-center"></i><span class=" lg:inline">Activity</span></a></li>
+    <li><a href="#" id="profile-btn" class="nav-link"><i class="fas fa-user w-6 text-center"></i><span class=" lg:inline">Profile</span></a></li>
+</ul>
+                    <button id="create-post-btn" class="w-full mt-auto bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold py-3 px-4 rounded-xl text-lg hover:scale-105 transition-transform">
+                        <i class="fas fa-plus lg:hidden"></i>
+                        <span class=" lg:inline">Create Post</span>
+                    </button>
+                </div>
+            </nav>
+            <main class="flex-1 p-4 lg:p-8 ml-20 lg:ml-0">
+                <div class="max-w-2xl mx-auto">
+                    <section id="feed-section" class="content-section active"></section>
+                    <section id="explore-section" class="content-section hidden"></section>
+                    <section id="activity-section" class="content-section hidden"></section>
+                    <section id="profile-section" class="content-section hidden"></section>
+                    <section id="create-post-section" class="content-section hidden"></section>
+                </div>
+            </main>
+            <aside class="hidden xl:block w-96 p-8 flex-shrink-0">
+                <div class="sticky top-8">
+                    <div id="user-profile-snippet"></div>
+                    <div id="suggestions-box"></div>
+                </div>
+            </aside>
         </div>
     </div>
 
     <script src="js/config.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/app.js"></script>
+    <script src="./js/ui.js"></script>
 </body>
 </html>
