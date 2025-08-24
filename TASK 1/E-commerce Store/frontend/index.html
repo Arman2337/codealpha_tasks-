@@ -3,48 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Commerce Store</title>
+    <title>E-Store | Modern Online Shopping</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <nav class="navbar">
-        <div class="nav-brand">E-Store</div>
+        <a href="index.html" class="nav-brand">E-Store</a>
         <div class="nav-links">
             <a href="index.html" class="active">Home</a>
+            <a href="admin.html">Admin</a>
             <a href="cart.html" class="cart-link">
-                Cart <span id="cart-count">0</span>
-                <i class="fas fa-shopping-cart"></i>
+                <i class="fas fa-shopping-cart"></i> Cart
+                <span id="cart-count">0</span>
             </a>
         </div>
     </nav>
 
     <main class="container">
         <div class="products-header">
-            <h1>Our Products</h1>
+            <h1 class="products-title">Our Products</h1>
             <div class="search-bar">
-                <input type="text" id="search-input" placeholder="Search products...">
-                <button id="search-btn"><i class="fas fa-search"></i></button>
+                <input type="text" id="search-input" placeholder="Search for products...">
+                <button id="search-btn" class="btn"><i class="fas fa-search"></i></button>
             </div>
         </div>
-
-        <div id="loading" class="loading">Loading products...</div>
-        <div id="error" class="error" style="display: none;"></div>
         
-        <div id="product-list" class="product-grid"></div>
+        <div id="loading" style="text-align: center; padding: 2rem; font-size: 1.2rem;">Loading products...</div>
+
+        <div id="product-list" class="product-grid" style="display: none;">
+            </div>
     </main>
 
-    <div id="product-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <div id="product-details"></div>
-        </div>
-    </div>
-
-    <footer class="footer">
-        <p>&copy; 2024 E-Store. All rights reserved.</p>
-    </footer>
-
-    <script src="script.js"></script>
+    <script src="./js/main.js" type="module"></script>
 </body>
 </html>
