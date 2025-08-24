@@ -8,6 +8,7 @@ const API_ENDPOINTS = {
     me: `${API_BASE_URL}/auth/me`,
 
     // User endpoints
+    getAllUsers: `${API_BASE_URL}/users`, // <-- ADD THIS LINE
     userProfile: (username) => `${API_BASE_URL}/users/${username}`,
     updateProfile: `${API_BASE_URL}/users/profile`,
     followUser: (userId) => `${API_BASE_URL}/users/follow/${userId}`,
@@ -16,6 +17,7 @@ const API_ENDPOINTS = {
     userFollowing: (userId) => `${API_BASE_URL}/users/${userId}/following`,
 
     // Post endpoints
+    allPosts: `${API_BASE_URL}/posts`, // <-- ADD THIS LINE for the Explore page
     createPost: `${API_BASE_URL}/posts`,
     feed: `${API_BASE_URL}/posts/feed`,
     userPosts: (userId) => `${API_BASE_URL}/posts/user/${userId}`,
@@ -33,10 +35,10 @@ const STORAGE_KEYS = {
 };
 
 // Default profile picture
-const DEFAULT_PROFILE_PICTURE = 'images/default-profile.png';
+const DEFAULT_PROFILE_PICTURE = 'images/default-profile.png'; // This will be replaced by placeholders
 
 // Maximum file size for uploads (5MB)
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 // Allowed file types for uploads
-const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif']; 
+const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif'];

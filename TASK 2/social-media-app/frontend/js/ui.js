@@ -24,7 +24,6 @@ class UIHandler {
         this.navLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
-                // Special handling for search button
                 if (link.id === 'search-btn') {
                     this.renderSearchModal();
                 } else {
@@ -37,7 +36,6 @@ class UIHandler {
 
     async handleNavigation(buttonId) {
         this.navLinks.forEach(link => link.classList.toggle('active', link.id === buttonId));
-        
         Object.values(this.sections).forEach(section => section.classList.add('hidden'));
 
         let sectionToShow;
@@ -59,9 +57,7 @@ class UIHandler {
                 await this.loadProfile();
                 break;
         }
-        if (sectionToShow) {
-            sectionToShow.classList.remove('hidden');
-        }
+        if (sectionToShow) sectionToShow.classList.remove('hidden');
     }
 
     // --- RENDER METHODS --- //
@@ -74,11 +70,10 @@ class UIHandler {
             
             this.sections.feed.innerHTML = `<section id="posts-feed"></section>`;
             const postsFeed = this.sections.feed.querySelector('#posts-feed');
-            if (posts.length > 0) {
-                postsFeed.innerHTML = posts.map(post => this.createPostElement(post, currentUser)).join('');
-            } else {
-                postsFeed.innerHTML = '<div class="glass-card rounded-2xl p-8 text-center"><p>No posts in your feed yet. Follow someone to see their posts!</p></div>';
-            }
+            postsFeed.innerHTML = posts.length > 0
+                ? posts.map(post => this.createPostElement(post, currentUser)).join('')
+                : '<div class="glass-card rounded-2xl p-8 text-center"><p>No posts in your feed yet. Follow some users to see their posts here!</p></div>';
+            
             this.initializePostInteractions(postsFeed);
             this.renderSideBar(currentUser);
         } catch (error) {
@@ -106,6 +101,7 @@ class UIHandler {
             const posts = await api.getExplorePosts();
             this.sections.explore.innerHTML = this.createExploreGrid(posts);
         } catch(e) {
+            console.error("Error loading explore:", e);
             this.sections.explore.innerHTML = '<p class="text-center p-8 text-red-500">Could not load explore content.</p>';
         }
     }
@@ -115,27 +111,18 @@ class UIHandler {
     }
 
     renderSideBar(user) {
+        const placeholderAvatar = `https://placehold.co/56x56/E2E8F0/4A5568?text=${user.username.charAt(0)}`;
         if (this.userProfileSnippet) {
             this.userProfileSnippet.innerHTML = `
                 <div class="flex items-center gap-4 mb-8">
-                    <img src="${user.profilePicture || `https://placehold.co/56x56/E2E8F0/4A5568?text=${user.username.charAt(0)}`}" class="w-14 h-14 rounded-full object-cover" alt="Current User Avatar">
-                    <div>
-                        <p class="font-bold">${user.username}</p>
-                        <p class="text-sm text-gray-500">${user.name || ''}</p>
-                    </div>
+                    <img src="${user.profilePicture || placeholderAvatar}" class="w-14 h-14 rounded-full object-cover" alt="User Avatar">
+                    <div><p class="font-bold">${user.username}</p><p class="text-sm text-gray-500">${user.name || ''}</p></div>
                     <button id="logout-btn" class="ml-auto text-blue-500 font-semibold text-sm">Logout</button>
-                </div>
-            `;
+                </div>`;
             document.getElementById('logout-btn').addEventListener('click', () => authHandler.handleLogout());
         }
-
         if (this.suggestionsBox) {
-            this.suggestionsBox.innerHTML = `
-                <div class="glass-card rounded-2xl p-4">
-                    <h3 class="font-bold text-gray-600 mb-4">Suggestions For You</h3>
-                    <p class="text-sm text-gray-400">No suggestions right now.</p>
-                </div>
-            `;
+            this.suggestionsBox.innerHTML = `<div class="glass-card rounded-2xl p-4"><h3 class="font-bold text-gray-600 mb-4">Suggestions</h3><p class="text-sm text-gray-400">None right now.</p></div>`;
         }
     }
 
@@ -146,33 +133,25 @@ class UIHandler {
         const placeholderAvatar = `https://placehold.co/48x48/E2E8F0/4A5568?text=${post.user.username.charAt(0)}`;
         
         return `
-            <article class="glass-card rounded-2xl mb-8 overflow-hidden">
+            <article class="glass-card rounded-2xl mb-8 overflow-hidden" data-post-id="${post._id}">
                 <div class="flex items-center p-4 gap-4">
                     <img src="${post.user.profilePicture || placeholderAvatar}" class="w-12 h-12 rounded-full object-cover" alt="User Avatar">
-                    <div>
-                        <p class="font-bold">${post.user.username}</p>
-                        <p class="text-xs text-gray-500">${new Date(post.createdAt).toLocaleString()}</p>
-                    </div>
+                    <div><p class="font-bold">${post.user.username}</p><p class="text-xs text-gray-500">${new Date(post.createdAt).toLocaleString()}</p></div>
                 </div>
                 <img src="${post.image}" class="w-full h-auto max-h-[600px] object-cover" alt="Post Image">
                 <div class="p-4">
                     <div class="flex items-center gap-4 text-2xl mb-2">
-                        <button class="like-btn ${isLiked ? 'liked' : ''}" data-post-id="${post._id}">
-                            <i class="${isLiked ? 'fas' : 'far'} fa-heart"></i>
-                        </button>
+                        <button class="like-btn ${isLiked ? 'liked' : ''}" data-post-id="${post._id}"><i class="${isLiked ? 'fas' : 'far'} fa-heart"></i></button>
                         <button class="comment-btn" data-post-id="${post._id}"><i class="far fa-comment"></i></button>
                         <button><i class="far fa-paper-plane"></i></button>
                     </div>
                     <p class="font-bold like-count">${post.likes.length} likes</p>
-                    <p class="mt-2"><span class="font-bold mr-2">${post.user.username}</span> ${post.caption}</p>
-                    ${post.comments.length > 0 ? `
-                        <button class="view-comments-btn text-gray-500 text-sm mt-2 hover:underline" data-post-id="${post._id}">
-                            View all ${post.comments.length} comments
-                        </button>
-                    ` : '<p class="text-gray-400 text-sm mt-2">No comments yet.</p>'}
+                    <p class="mt-2"><span class="font-bold mr-2">${post.user.username}</span> ${post.caption || ''}</p>
+                    ${post.comments.length > 0 ? `<button class="view-comments-btn text-gray-500 text-sm mt-2 hover:underline" data-post-id="${post._id}">View all ${post.comments.length} comments</button>` : ''}
+                    <!-- Inline Comments Section -->
+                    <div class="comments-container mt-4"></div>
                 </div>
-            </article>
-        `;
+            </article>`;
     }
     
     createProfileElement(user, posts) {
@@ -213,17 +192,21 @@ class UIHandler {
         }
         return `
             <div class="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
-                ${posts.map(post => `
-                    <div class="relative aspect-square overflow-hidden rounded-lg group cursor-pointer">
-                        <img src="${post.image}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <div class="text-white flex gap-4 text-lg font-bold">
-                                <span><i class="fas fa-heart mr-1"></i> ${post.likes.length}</span>
-                                <span><i class="fas fa-comment mr-1"></i> ${post.comments.length}</span>
+                ${posts.map(post => {
+                    const likesCount = post.likes?.length || 0;
+                    const commentsCount = post.comments?.length || 0;
+                    return `
+                        <div class="relative aspect-square overflow-hidden rounded-lg group cursor-pointer">
+                            <img src="${post.image}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div class="text-white flex gap-4 text-lg font-bold">
+                                    <span><i class="fas fa-heart mr-1"></i> ${likesCount}</span>
+                                    <span><i class="fas fa-comment mr-1"></i> ${commentsCount}</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `).join('')}
+                    `;
+                }).join('')}
             </div>
         `;
     }
@@ -244,22 +227,7 @@ class UIHandler {
                 <button type="submit" class="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold py-3 px-4 rounded-xl text-lg">Share Post</button>
             </form>
         `);
-
-        document.getElementById('new-post-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const image = document.getElementById('post-image-input').files[0];
-            const caption = document.getElementById('post-caption-input').value;
-            if (!image) { alert('Please select an image.'); return; }
-            
-            try {
-                await api.createPost({ image, caption });
-                this.closeModal();
-                this.handleNavigation('home-btn');
-            } catch (error) {
-                alert('Failed to create post.');
-                console.error(error);
-            }
-        });
+        document.getElementById('new-post-form').addEventListener('submit', async (e) => { /* ... */ });
     }
     
     renderEditProfileModal(user) {
@@ -272,41 +240,56 @@ class UIHandler {
                 <input type="text" id="search-input" placeholder="Search for users..." class="w-full p-3 border rounded-lg bg-gray-50 pl-10">
                 <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
             </div>
-            <div id="search-results" class="mt-4 max-h-64 overflow-y-auto">
-                <p class="text-center text-gray-500">Start typing to find users.</p>
-            </div>
+            <div id="search-results" class="mt-4 max-h-64 overflow-y-auto"><p class="text-center text-gray-500">Start typing to find users.</p></div>
         `);
-    }
 
-    async renderCommentsModal(postId) {
-        this.createModal("Comments", `<div id="comments-list" class="text-center p-8">Loading...</div>`);
-        const commentsList = document.getElementById('comments-list');
-        try {
-            const post = await api.getPost(postId);
-            if (post.comments.length > 0) {
-                commentsList.innerHTML = `
-                    <div class="space-y-4 max-h-96 overflow-y-auto text-left">
-                        ${post.comments.map(comment => `
-                            <div class="flex items-start gap-3">
-                                <img src="${comment.user.profilePicture || `https://placehold.co/40x40/E2E8F0/4A5568?text=${comment.user.username.charAt(0)}`}" class="w-10 h-10 rounded-full object-cover">
-                                <div>
-                                    <p><span class="font-bold">${comment.user.username}</span> ${comment.text}</p>
-                                    <p class="text-xs text-gray-500 mt-1">${new Date(comment.createdAt).toLocaleString()}</p>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-            } else {
-                commentsList.innerHTML = `<p class="text-center text-gray-500 p-8">No comments on this post yet.</p>`;
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+        
+        searchInput.addEventListener('input', async (e) => {
+            const query = e.target.value;
+            if (query.length < 2) {
+                searchResults.innerHTML = '<p class="text-center text-gray-500">Keep typing...</p>';
+                return;
             }
-        } catch (error) {
-            commentsList.innerHTML = `<p class="text-center text-red-500 p-8">Could not load comments.</p>`;
+            
+            searchResults.innerHTML = '<p class="text-center text-gray-500">Searching...</p>';
+            try {
+                const users = await api.searchUsers(query);
+                this.renderSearchResults(users, searchResults);
+            } catch (error) {
+                searchResults.innerHTML = '<p class="text-center text-red-500">Could not perform search.</p>';
+            }
+        });
+    }
+    
+    renderSearchResults(users, container) {
+        if (users.length === 0) {
+            container.innerHTML = '<p class="text-center text-gray-500">No users found.</p>';
+            return;
         }
+        
+        container.innerHTML = `
+            <div class="space-y-3">
+                ${users.map(user => {
+                    const placeholderAvatar = `https://placehold.co/40x40/E2E8F0/4A5568?text=${user.username.charAt(0)}`;
+                    return `
+                        <div class="flex items-center gap-4 p-2 rounded-lg hover:bg-gray-100 cursor-pointer">
+                            <img src="${user.profilePicture || placeholderAvatar}" class="w-10 h-10 rounded-full object-cover">
+                            <div>
+                                <p class="font-bold">${user.username}</p>
+                                <p class="text-sm text-gray-500">${user.name || ''}</p>
+                            </div>
+                            <button class="ml-auto bg-blue-500 text-white font-semibold px-3 py-1 rounded-lg text-sm">View</button>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
     }
 
     createModal(title, content) {
-        this.closeModal(); // Close any existing modal first
+        this.closeModal();
         const modalHTML = `
             <div id="app-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-fade-in">
                 <div class="glass-card rounded-2xl p-6 w-full max-w-md animate-pop-in">
@@ -316,21 +299,10 @@ class UIHandler {
                     </div>
                     <div>${content}</div>
                 </div>
-            </div>
-        `;
+            </div>`;
         document.body.insertAdjacentHTML('beforeend', modalHTML);
-        
-        const closeModalBtn = document.getElementById('close-modal-btn');
-        const appModal = document.getElementById('app-modal');
-
-        if (closeModalBtn) {
-            closeModalBtn.addEventListener('click', () => this.closeModal());
-        }
-        if (appModal) {
-            appModal.addEventListener('click', (e) => {
-                if (e.target.id === 'app-modal') this.closeModal();
-            });
-        }
+        document.getElementById('close-modal-btn').addEventListener('click', () => this.closeModal());
+        document.getElementById('app-modal').addEventListener('click', (e) => { if (e.target.id === 'app-modal') this.closeModal(); });
     }
 
     closeModal() {
@@ -338,21 +310,73 @@ class UIHandler {
         if (modal) modal.remove();
     }
 
-    // --- EVENT LISTENERS INITIALIZERS --- //
+    // --- EVENT LISTENERS & DYNAMIC CONTENT --- //
 
     initializePostInteractions(container) {
         container.querySelectorAll('.like-btn').forEach(button => {
-            button.addEventListener('click', async () => { /* ... unchanged ... */ });
+            button.addEventListener('click', async () => {
+                const postId = button.dataset.postId;
+                button.classList.toggle('liked');
+                const icon = button.querySelector('i');
+                icon.classList.toggle('far');
+                icon.classList.toggle('fas');
+
+                try {
+                    const updatedPost = await api.likePost(postId);
+                    const countElement = button.closest('.p-4').querySelector('.like-count');
+                    countElement.textContent = `${updatedPost.likes.length} likes`;
+                } catch (error) {
+                    console.error("Failed to like post:", error);
+                    button.classList.toggle('liked');
+                    icon.classList.toggle('far');
+                    icon.classList.toggle('fas');
+                }
+            });
         });
 
         container.querySelectorAll('.view-comments-btn, .comment-btn').forEach(button => {
-            button.addEventListener('click', () => {
+            button.addEventListener('click', async () => {
                 const postId = button.dataset.postId;
-                this.renderCommentsModal(postId);
+                const postElement = document.querySelector(`article[data-post-id="${postId}"]`);
+                const commentsContainer = postElement.querySelector('.comments-container');
+                
+                const isExpanded = commentsContainer.classList.toggle('expanded');
+
+                if (isExpanded && commentsContainer.innerHTML === '') {
+                    commentsContainer.innerHTML = `<p class="text-sm text-gray-500">Loading comments...</p>`;
+                    try {
+                        const post = await api.getPost(postId);
+                        commentsContainer.innerHTML = this.createCommentsSection(post.comments);
+                    } catch (error) {
+                        commentsContainer.innerHTML = `<p class="text-sm text-red-500">Could not load comments.</p>`;
+                    }
+                }
             });
         });
     }
     
+    createCommentsSection(comments) {
+        const commentsHTML = comments.length > 0 ? comments.map(comment => {
+            const placeholderAvatar = `https://placehold.co/40x40/E2E8F0/4A5568?text=${comment.user.username.charAt(0)}`;
+            return `
+                <div class="flex items-start gap-3 mb-3">
+                    <img src="${comment.user.profilePicture || placeholderAvatar}" class="w-8 h-8 rounded-full object-cover mt-1">
+                    <div class="bg-gray-100 p-2 rounded-lg w-full">
+                        <p class="text-sm"><span class="font-bold">${comment.user.username}</span> ${comment.text}</p>
+                    </div>
+                </div>`;
+        }).join('') : '';
+
+        return `
+            <div class="space-y-2 border-t pt-4 mt-4">
+                ${commentsHTML}
+                <form class="add-comment-form flex gap-2">
+                    <input type="text" placeholder="Add a comment..." class="w-full p-2 border rounded-lg bg-gray-50 text-sm">
+                    <button type="submit" class="bg-purple-500 text-white font-semibold px-4 rounded-lg text-sm">Post</button>
+                </form>
+            </div>`;
+    }
+
     initializeProfileInteractions(user, posts) {
         document.getElementById('edit-profile-btn-action').addEventListener('click', () => {
             this.renderEditProfileModal(user);
@@ -361,15 +385,24 @@ class UIHandler {
         const tabs = document.querySelectorAll('.profile-tab');
         const contentArea = document.getElementById('profile-content-area');
         
-        const renderPosts = () => { /* ... unchanged ... */ };
-        const renderSaved = () => { /* ... unchanged ... */ };
+        const renderPosts = () => {
+            if (posts.length > 0) {
+                contentArea.innerHTML = `<div class="grid grid-cols-3 gap-1">${posts.map(p => `<div class="aspect-square bg-gray-200"><img src="${p.image}" class="w-full h-full object-cover"></div>`).join('')}</div>`;
+            } else {
+                contentArea.innerHTML = `<p class="text-center text-gray-500 p-8">No posts yet.</p>`;
+            }
+        };
+
+        const renderSaved = () => {
+            contentArea.innerHTML = `<p class="text-center text-gray-500 p-8">You have no saved posts.</p>`;
+        };
 
         renderPosts();
 
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 tabs.forEach(t => {
-                    t.classList.remove('active', 'text-gray-500');
+                    t.classList.remove('active');
                     t.classList.add('text-gray-500');
                 });
                 tab.classList.add('active');
