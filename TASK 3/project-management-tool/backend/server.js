@@ -62,7 +62,7 @@ io.on('connection', (socket) => {
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
-app.use('/api/projects', require('./routes/projects'));
+app.use('/api/projects', require('./routes/projectRoutes'));
 app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/comments', require('./routes/comments'));
 
