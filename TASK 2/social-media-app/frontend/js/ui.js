@@ -148,7 +148,6 @@ class UIHandler {
                     <p class="font-bold like-count">${post.likes.length} likes</p>
                     <p class="mt-2"><span class="font-bold mr-2">${post.user.username}</span> ${post.caption || ''}</p>
                     ${post.comments.length > 0 ? `<button class="view-comments-btn text-gray-500 text-sm mt-2 hover:underline" data-post-id="${post._id}">View all ${post.comments.length} comments</button>` : ''}
-                    <!-- Inline Comments Section -->
                     <div class="comments-container mt-4"></div>
                 </div>
             </article>`;
@@ -227,11 +226,60 @@ class UIHandler {
                 <button type="submit" class="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold py-3 px-4 rounded-xl text-lg">Share Post</button>
             </form>
         `);
-        document.getElementById('new-post-form').addEventListener('submit', async (e) => { /* ... */ });
+        document.getElementById('new-post-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const image = document.getElementById('post-image-input').files[0];
+            const caption = document.getElementById('post-caption-input').value;
+            if (!image) { alert('Please select an image.'); return; }
+            
+            try {
+                await api.createPost({ image, caption });
+                this.closeModal();
+                this.handleNavigation('home-btn');
+            } catch (error) {
+                alert('Failed to create post.');
+                console.error(error);
+            }
+        });
     }
     
     renderEditProfileModal(user) {
-        // Implementation for this modal
+        this.createModal("Edit Profile", `
+            <form id="edit-profile-form">
+                <div class="mb-4">
+                    <label class="block mb-2 font-semibold">Profile Picture</label>
+                    <input type="file" id="edit-picture-input" accept="image/*" class="w-full p-2 border rounded-lg bg-gray-50">
+                </div>
+                <div class="mb-4">
+                    <label class="block mb-2 font-semibold">Name</label>
+                    <input type="text" id="edit-name-input" value="${user.name || ''}" class="w-full p-2 border rounded-lg bg-gray-50">
+                </div>
+                <div class="mb-4">
+                    <label class="block mb-2 font-semibold">Bio</label>
+                    <textarea id="edit-bio-input" rows="3" class="w-full p-2 border rounded-lg bg-gray-50">${user.bio || ''}</textarea>
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold py-3 px-4 rounded-xl text-lg">Save Changes</button>
+            </form>
+        `);
+
+        document.getElementById('edit-profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const profileData = {
+                profilePicture: document.getElementById('edit-picture-input').files[0],
+                name: document.getElementById('edit-name-input').value,
+                bio: document.getElementById('edit-bio-input').value,
+            };
+            if (!profileData.profilePicture) delete profileData.profilePicture;
+            
+            try {
+                await api.updateProfile(profileData);
+                this.closeModal();
+                this.loadProfile();
+            } catch (error) {
+                alert('Failed to update profile.');
+                console.error(error);
+            }
+        });
     }
 
     renderSearchModal() {
@@ -280,7 +328,7 @@ class UIHandler {
                                 <p class="font-bold">${user.username}</p>
                                 <p class="text-sm text-gray-500">${user.name || ''}</p>
                             </div>
-                            <button class="ml-auto bg-blue-500 text-white font-semibold px-3 py-1 rounded-lg text-sm">View</button>
+                            <button class="ml-auto bg-blue-500 text-white font-semibold px-3 py-1 rounded-lg text-sm hover:bg-blue-600">Follow</button>
                         </div>
                     `;
                 }).join('')}
