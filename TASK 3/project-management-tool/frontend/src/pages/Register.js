@@ -31,8 +31,10 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const { confirmPassword, ...registerData } = formData;
-      const result = await register(registerData);
+      // FIX: Destructure formData and pass arguments individually
+      const { username, email, password } = formData;
+      const result = await register(username, email, password);
+
       if (result.success) {
         navigate('/dashboard');
       } else {
@@ -130,4 +132,4 @@ const Register = () => {
   );
 };
 
-export default Register; 
+export default Register;
