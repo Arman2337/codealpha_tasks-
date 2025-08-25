@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -6,66 +6,131 @@ import {
   Col,
   Card,
   Button,
-  ListGroup,
   Form,
+  Alert,
+  Spinner,
+  Dropdown,
+  ListGroup,
   Badge,
-  Alert
+  Modal // Import Modal for the task form
 } from 'react-bootstrap';
-import { FaEdit, FaTrash, FaPlus, FaUser, FaComment } from 'react-icons/fa';
-import axiosInstance from 'axios';
+import { FaEdit, FaTrash, FaPlus, FaUser, FaCrown, FaCalendarAlt } from 'react-icons/fa';
+import axiosInstance from '../utils/axios';
+import { AuthContext } from '../context/AuthContext';
+import DatePicker from "react-datepicker"; // Import DatePicker
+import "react-datepicker/dist/react-datepicker.css";
 
 const ProjectDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [newTask, setNewTask] = useState('');
-  const [newComment, setNewComment] = useState('');
+  
+  // State for the Task Modal
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [currentTask, setCurrentTask] = useState(null); // Holds task data for editing
+  const [isEditingTask, setIsEditingTask] = useState(false);
+
+  const taskStatuses = ['todo', 'in-progress', 'review', 'completed'];
 
   useEffect(() => {
+    const fetchProjectDetails = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const res = await axiosInstance.get(`/api/projects/${id}`);
+        setProject(res.data);
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to fetch project details.');
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchProjectDetails();
   }, [id]);
 
-  const fetchProjectDetails = async () => {
-    const token = localStorage.getItem("token");
+  const tasksByStatus = useMemo(() => {
+    const grouped = {};
+    taskStatuses.forEach(status => grouped[status] = []);
+    project?.tasks.forEach(task => {
+      if (grouped[task.status]) {
+        grouped[task.status].push(task);
+      }
+    });
+    return grouped;
+  }, [project?.tasks]);
+
+  // --- MODAL AND TASK HANDLERS ---
+
+  const handleShowTaskModal = (task = null) => {
+    if (task) {
+      // Editing an existing task
+      setIsEditingTask(true);
+      setCurrentTask({
+        ...task,
+        dueDate: task.dueDate ? new Date(task.dueDate) : null,
+        assignedTo: task.assignedTo?._id || ''
+      });
+    } else {
+      // Creating a new task
+      setIsEditingTask(false);
+      setCurrentTask({
+        title: '',
+        description: '',
+        assignedTo: '',
+        dueDate: new Date(),
+      });
+    }
+    setShowTaskModal(true);
+  };
+
+  const handleCloseTaskModal = () => {
+    setShowTaskModal(false);
+    setCurrentTask(null);
+    setIsEditingTask(false);
+  };
+
+  const handleSaveTask = async () => {
     try {
-      const res = await axiosInstance.get(`/api/projects/${id}`);
-      setProject(res.data);
+      let res;
+      const taskData = {
+        ...currentTask,
+        project: id,
+      };
+
+      if (isEditingTask) {
+        // Update existing task
+        res = await axiosInstance.put(`/api/tasks/${currentTask._id}`, taskData);
+        setProject(prev => ({
+          ...prev,
+          tasks: prev.tasks.map(t => t._id === currentTask._id ? res.data.task : t)
+        }));
+      } else {
+        // Create new task
+        res = await axiosInstance.post('/api/tasks', taskData);
+        setProject(prev => ({ ...prev, tasks: [...prev.tasks, res.data.task] }));
+      }
+      handleCloseTaskModal();
     } catch (err) {
-      setError('Failed to fetch project details');
-    } finally {
-      setLoading(false);
+      setError(err.response?.data?.message || 'Failed to save task.');
     }
   };
 
-  const handleAddTask = async (e) => {
-    e.preventDefault();
-    if (!newTask.trim()) return;
+  const handleStatusChange = async (taskId, newStatus) => {
+    const originalTasks = [...project.tasks];
+    const updatedTasks = originalTasks.map(task => 
+        task._id === taskId ? { ...task, status: newStatus } : task
+    );
+    setProject(prev => ({ ...prev, tasks: updatedTasks }));
 
     try {
-      const res = await axiosInstance.post(`/api/projects/${id}/tasks`, {
-        title: newTask
-      });
-      setProject({ ...project, tasks: [...project.tasks, res.data] });
-      setNewTask('');
+      await axiosInstance.put(`/api/tasks/${taskId}`, { status: newStatus });
     } catch (err) {
-      setError('Failed to add task');
-    }
-  };
-
-  const handleAddComment = async (e) => {
-    e.preventDefault();
-    if (!newComment.trim()) return;
-
-    try {
-      const res = await axiosInstance.post(`/api/projects/${id}/comments`, {
-        content: newComment
-      });
-      setProject({ ...project, comments: [...project.comments, res.data] });
-      setNewComment('');
-    } catch (err) {
-      setError('Failed to add comment');
+      setError('Failed to update task status.');
+      setProject(prev => ({ ...prev, tasks: originalTasks }));
     }
   };
 
@@ -75,163 +140,151 @@ const ProjectDetails = () => {
         await axiosInstance.delete(`/api/projects/${id}`);
         navigate('/dashboard');
       } catch (err) {
-        setError('Failed to delete project');
+        setError('Failed to delete project.');
       }
     }
   };
 
-  if (loading) {
-    return (
-      <Container className="py-5">
-        <div className="text-center">Loading...</div>
-      </Container>
-    );
-  }
+  if (loading) return <Container className="py-5 text-center"><Spinner animation="border" /></Container>;
+  if (error || !project) return <Container className="py-5"><Alert variant="danger">{error || 'Project not found.'}</Alert></Container>;
 
-  if (!project) {
-    return (
-      <Container className="py-5">
-        <Alert variant="danger">Project not found</Alert>
-      </Container>
-    );
-  }
+  const isOwner = user && project.owner._id === user.id;
 
   return (
-    <Container className="py-5">
-      <Row className="mb-4">
+    <Container fluid className="py-4 px-md-4">
+      {error && <Alert variant="danger" onClose={() => setError('')} dismissible>{error}</Alert>}
+      
+      {/* Project Header */}
+      <Row className="mb-4 align-items-center">
         <Col>
-          <h2>{project.title}</h2>
+          <h2 className="mb-0">{project.title}</h2>
           <p className="text-muted">{project.description}</p>
         </Col>
-        <Col xs="auto">
-          <Button
-            variant="outline-primary"
-            className="me-2"
-            onClick={() => navigate(`/project/${id}/edit`)}
-          >
-            <FaEdit className="me-2" />
-            Edit
-          </Button>
-          <Button variant="outline-danger" onClick={handleDeleteProject}>
-            <FaTrash className="me-2" />
-            Delete
-          </Button>
+        {isOwner && (
+          <Col xs="auto">
+            <Button variant="outline-primary" className="me-2" onClick={() => navigate(`/project/${id}/edit`)}><FaEdit /> Edit</Button>
+            <Button variant="outline-danger" onClick={handleDeleteProject}><FaTrash /> Delete</Button>
+          </Col>
+        )}
+      </Row>
+
+      {/* Project Team Section */}
+      <Row>
+        <Col lg={12} className="mb-4">
+            <Card>
+                <Card.Header as="h5">Project Team</Card.Header>
+                <Card.Body>
+                    <ListGroup horizontal className="flex-wrap">
+                        {project.members && project.members.map(member => (
+                            <ListGroup.Item key={member._id} className="d-flex align-items-center border-0">
+                                <FaUser className="me-2" />
+                                <div>
+                                    <strong>{member.username}</strong>
+                                    {project.owner._id === member._id && (
+                                        <Badge bg="primary" className="ms-2"><FaCrown className="me-1" /> Owner</Badge>
+                                    )}
+                                </div>
+                            </ListGroup.Item>
+                        ))}
+                    </ListGroup>
+                </Card.Body>
+            </Card>
         </Col>
       </Row>
 
-      <Row className="g-4">
-        {/* Tasks Section */}
-        <Col md={6}>
-          <Card>
-            <Card.Header className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">Tasks</h5>
-              <Button variant="primary" size="sm" onClick={() => setNewTask('')}>
-                <FaPlus className="me-2" />
-                Add Task
-              </Button>
-            </Card.Header>
-            <Card.Body>
-              <Form onSubmit={handleAddTask} className="mb-3">
-                <Form.Group className="d-flex gap-2">
-                  <Form.Control
-                    type="text"
-                    value={newTask}
-                    onChange={(e) => setNewTask(e.target.value)}
-                    placeholder="Add a new task"
-                  />
-                  <Button type="submit" variant="primary">
-                    Add
-                  </Button>
-                </Form.Group>
-              </Form>
+      <div className="d-flex justify-content-end mb-3">
+          <Button onClick={() => handleShowTaskModal()}><FaPlus /> Add New Task</Button>
+      </div>
 
-              <ListGroup>
-                {project.tasks.map((task) => (
-                  <ListGroup.Item
-                    key={task._id}
-                    className="d-flex justify-content-between align-items-center"
-                  >
-                    <div>
-                      <span className={task.completed ? 'text-decoration-line-through' : ''}>
-                        {task.title}
-                      </span>
-                      <Badge bg={task.completed ? 'success' : 'warning'} className="ms-2">
-                        {task.completed ? 'Completed' : 'Pending'}
-                      </Badge>
-                    </div>
-                    <div>
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        className="me-2"
-                        onClick={() => {/* Handle edit task */}}
-                      >
-                        <FaEdit />
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => {/* Handle delete task */}}
-                      >
-                        <FaTrash />
-                      </Button>
-                    </div>
-                  </ListGroup.Item>
-                ))}
-              </ListGroup>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        {/* Comments Section */}
-        <Col md={6}>
-          <Card>
-            <Card.Header>
-              <h5 className="mb-0">Comments</h5>
-            </Card.Header>
-            <Card.Body>
-              <Form onSubmit={handleAddComment} className="mb-3">
-                <Form.Group>
-                  <Form.Control
-                    as="textarea"
-                    rows={3}
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Add a comment"
-                  />
-                </Form.Group>
-                <Button type="submit" variant="primary" className="mt-2">
-                  <FaComment className="me-2" />
-                  Post Comment
-                </Button>
-              </Form>
-
-              <ListGroup>
-                {project.comments.map((comment) => (
-                  <ListGroup.Item key={comment._id}>
-                    <div className="d-flex align-items-center mb-2">
-                      <FaUser className="me-2" />
-                      <strong>{comment.author.username}</strong>
-                      <small className="text-muted ms-2">
-                        {new Date(comment.createdAt).toLocaleDateString()}
-                      </small>
-                    </div>
-                    <p className="mb-0">{comment.content}</p>
-                  </ListGroup.Item>
-                ))}
-              </ListGroup>
-            </Card.Body>
-          </Card>
-        </Col>
+      {/* Kanban Board */}
+      <Row>
+        {taskStatuses.map(status => (
+          <Col key={status} md={6} lg={3} className="mb-4">
+            <Card className="h-100 bg-light">
+              <Card.Header className="text-capitalize fw-bold">{status.replace('-', ' ')}</Card.Header>
+              <Card.Body>
+                {tasksByStatus[status] && tasksByStatus[status].length > 0 ? (
+                  tasksByStatus[status].map(task => (
+                    <Card key={task._id} className="mb-2 shadow-sm">
+                      <Card.Body className="p-2">
+                        <div className="d-flex justify-content-between">
+                          <p className="mb-1 fw-bold">{task.title}</p>
+                          <Dropdown>
+                            <Dropdown.Toggle variant="light" size="sm" id={`dropdown-${task._id}`} />
+                            <Dropdown.Menu>
+                              <Dropdown.Item onClick={() => handleShowTaskModal(task)}><FaEdit /> Edit Task</Dropdown.Item>
+                              <Dropdown.Divider />
+                              {taskStatuses.map(s => (
+                                <Dropdown.Item key={s} onClick={() => handleStatusChange(task._id, s)}>
+                                  Move to {s.replace('-', ' ')}
+                                </Dropdown.Item>
+                              ))}
+                            </Dropdown.Menu>
+                          </Dropdown>
+                        </div>
+                        <div className="d-flex justify-content-between align-items-center mt-2">
+                          <small className="text-muted d-flex align-items-center">
+                            <FaCalendarAlt className="me-1" />
+                            {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}
+                          </small>
+                          {task.assignedTo ? (
+                            <Badge pill bg="secondary" className="d-flex align-items-center">
+                                <FaUser className="me-1" /> {task.assignedTo.username}
+                            </Badge>
+                          ) : <Badge pill bg="light" text="dark">Unassigned</Badge>}
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  ))
+                ) : (
+                  <p className="text-muted fst-italic small mt-2">No tasks in this stage.</p>
+                )}
+              </Card.Body>
+            </Card>
+          </Col>
+        ))}
       </Row>
 
-      {error && (
-        <Alert variant="danger" className="mt-4">
-          {error}
-        </Alert>
-      )}
+      {/* --- TASK MODAL --- */}
+      <Modal show={showTaskModal} onHide={handleCloseTaskModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>{isEditingTask ? 'Edit Task' : 'Create New Task'}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {currentTask && (
+            <Form>
+              <Form.Group className="mb-3">
+                <Form.Label>Title</Form.Label>
+                <Form.Control type="text" value={currentTask.title} onChange={(e) => setCurrentTask({...currentTask, title: e.target.value})} />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Description</Form.Label>
+                <Form.Control as="textarea" rows={3} value={currentTask.description} onChange={(e) => setCurrentTask({...currentTask, description: e.target.value})} />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Assign To</Form.Label>
+                <Form.Select value={currentTask.assignedTo} onChange={(e) => setCurrentTask({...currentTask, assignedTo: e.target.value})}>
+                  <option value="">Unassigned</option>
+                  {project.members.map(member => (
+                    <option key={member._id} value={member._id}>{member.username}</option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Due Date</Form.Label>
+                <DatePicker selected={currentTask.dueDate} onChange={(date) => setCurrentTask({...currentTask, dueDate: date})} className="form-control" />
+              </Form.Group>
+            </Form>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseTaskModal}>Cancel</Button>
+          <Button variant="primary" onClick={handleSaveTask}>Save Changes</Button>
+        </Modal.Footer>
+      </Modal>
+
     </Container>
   );
 };
 
-export default ProjectDetails; 
+export default ProjectDetails;
