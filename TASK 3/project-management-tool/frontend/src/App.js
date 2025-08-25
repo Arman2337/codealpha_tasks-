@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import ProjectDetails from './pages/ProjectDetails';
 import CreateProject from './pages/CreateProject';
 import Profile from './pages/Profile';
+import EditProject from './pages/EditProject';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -30,6 +31,7 @@ function App() {
               <Route path="/project/:id" element={<PrivateRoute><ProjectDetails /></PrivateRoute>} />
               <Route path="/create-project" element={<PrivateRoute><CreateProject /></PrivateRoute>} />
               <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+              <Route path="/project/:id/edit" element={<PrivateRoute><EditProject /></PrivateRoute>} />
             </Routes>
           </main>
           <Footer />
