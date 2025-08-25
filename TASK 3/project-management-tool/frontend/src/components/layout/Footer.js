@@ -9,9 +9,9 @@ const Footer = () => {
         <div className="d-flex justify-content-between align-items-center">
           <div>
             <h5 className="mb-0">ProjectHub</h5>
-            <small className="text-muted">© 2024 All rights reserved</small>
+            
           </div>
-          <div className="d-flex gap-3">
+          {/* <div className="d-flex gap-3">
             <a href="#" className="text-light">
               <FaGithub size={20} />
             </a>
@@ -21,7 +21,8 @@ const Footer = () => {
             <a href="#" className="text-light">
               <FaTwitter size={20} />
             </a>
-          </div>
+          </div> */}
+          <small className="mb-0">© 2025 All rights reserved</small>
         </div>
       </Container>
     </footer>
