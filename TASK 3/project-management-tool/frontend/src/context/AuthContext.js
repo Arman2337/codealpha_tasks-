@@ -1,45 +1,56 @@
-import React, { createContext, useState, useEffect } from 'react';
-import axios from '../utils/axios';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
+import axiosInstance from '../utils/axios';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    // Initialize user from localStorage if available
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
-  const [isAuthenticated, setIsAuthenticated] = useState(!!user);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true); // Start with loading true
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
+  // Using useCallback to memoize the function
+  const checkAuth = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        const res = await axios.get('/api/users/me');
+        // FIX: The API endpoint was incorrect. Changed from /api/users/me to /api/auth/me
+        const res = await axiosInstance.get('/api/auth/me');
         const userData = res.data;
-        console.log('User data fetched:', userData);
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
+        
+        // The user object from /me might not have the 'id' field in the root
+        // Let's ensure our user state has a consistent shape.
+        const formattedUser = {
+            id: userData._id,
+            username: userData.username,
+            email: userData.email,
+            role: userData.role
+        };
+
+        setUser(formattedUser);
+        // Storing the consistent user object
+        localStorage.setItem('user', JSON.stringify(formattedUser));
         setIsAuthenticated(true);
       }
     } catch (err) {
+      // If token is invalid or expired, this catch block will run
+      console.error("Authentication check failed:", err);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       setUser(null);
       setIsAuthenticated(false);
     } finally {
+      // Set loading to false after the check is complete
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const login = async (email, password) => {
     try {
-      const res = await axios.post('/api/auth/login', { email, password });
+      const res = await axiosInstance.post('/api/auth/login', { email, password });
       const { token, user: userData } = res.data;
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
@@ -56,7 +67,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (username, email, password) => {
     try {
-      const res = await axios.post('/api/auth/register', {
+      const res = await axiosInstance.post('/api/auth/register', {
         username,
         email,
         password
@@ -82,8 +93,10 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
   };
 
+  // Show a loading indicator while we check for authentication
   if (loading) {
-    return <div>Loading...</div>;
+    // You can replace this with a more sophisticated loading spinner component
+    return <div>Loading Application...</div>;
   }
 
   return (
@@ -91,6 +104,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         isAuthenticated,
+        loading,
         login,
         register,
         logout,
@@ -100,4 +114,4 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-}; 
+};
