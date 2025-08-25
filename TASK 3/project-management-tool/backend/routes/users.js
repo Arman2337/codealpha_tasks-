@@ -1,112 +1,39 @@
 const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
-const User = require('../models/User');
+
+// Middleware
 const { auth, adminAuth } = require('../middleware/auth');
 const validate = require('../middleware/validate');
 
-// Validation rules
+// Controllers
+const {
+  getAllUsers,
+  getUserById,
+  updateUserProfile,
+  deleteUser
+} = require('../controllers/userController');
+
+// Validation rules for updating a profile
 const updateProfileRules = [
-  body('username')
-    .optional()
-    .trim()
-    .isLength({ min: 3 })
-    .withMessage('Username must be at least 3 characters long'),
-  body('email')
-    .optional()
-    .trim()
-    .isEmail()
-    .withMessage('Please enter a valid email'),
-  body('password')
-    .optional()
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long')
+  body('username', 'Username must be at least 3 characters long').optional().trim().isLength({ min: 3 }),
+  body('email', 'Please enter a valid email').optional().trim().isEmail(),
+  body('password', 'Password must be at least 6 characters long').optional().isLength({ min: 6 })
 ];
 
-// Get all users (admin only)
-router.get('/', auth, adminAuth, async (req, res) => {
-  try {
-    const users = await User.find().select('-password');
-    res.json(users);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-});
+// --- User Routes ---
 
-// Get user by ID
-router.get('/:id', auth, async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id)
-      .select('-password')
-      .populate('projects', 'title description status');
+// GET all users (Admin only)
+router.get('/', auth, adminAuth, getAllUsers);
 
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+// GET current user profile (using the /api/auth/me route is often preferred)
+// PUT update current user profile
+router.put('/profile', auth, updateProfileRules, validate, updateUserProfile);
 
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-});
+// GET user by ID (Admin or for specific profile views)
+router.get('/:id', auth, getUserById);
 
-// Update user profile
-router.put('/profile', auth, updateProfileRules, validate, async (req, res) => {
-  try {
-    const { username, email, password } = req.body;
-    const updates = {};
+// DELETE a user by ID (Admin only)
+router.delete('/:id', auth, adminAuth, deleteUser);
 
-    if (username) updates.username = username;
-    if (email) updates.email = email;
-    if (password) updates.password = password;
-
-    // Check if username or email is already taken
-    if (username || email) {
-      const existingUser = await User.findOne({
-        $or: [
-          { username: username || req.user.username },
-          { email: email || req.user.email }
-        ],
-        _id: { $ne: req.user._id }
-      });
-
-      if (existingUser) {
-        return res.status(400).json({
-          message: 'Username or email already taken',
-          field: existingUser.username === username ? 'username' : 'email'
-        });
-      }
-    }
-
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      { $set: updates },
-      { new: true, runValidators: true }
-    ).select('-password');
-
-    res.json({
-      message: 'Profile updated successfully',
-      user
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Delete user (admin only)
-router.delete('/:id', auth, adminAuth, async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-    
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    await user.remove();
-    res.json({ message: 'User deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-module.exports = router; 
+module.exports = router;
