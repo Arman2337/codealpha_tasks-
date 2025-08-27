@@ -87,7 +87,7 @@ class UIHandler {
         try {
             const user = await api.getCurrentUser();
             const posts = await api.getUserPosts(user._id);
-            this.sections.profile.innerHTML = this.createProfileElement(user, posts);
+            this.sections.profile.innerHTML = this.createProfileElement(user, posts, true);
             this.initializeProfileInteractions(user, posts);
         } catch (error) {
             console.error("Error loading profile:", error);
@@ -128,14 +128,29 @@ class UIHandler {
 
     // --- HTML ELEMENT CREATORS --- //
 
+    renderAvatar(username, profilePicture, size) {
+        const dimension = typeof size === 'number' ? size : 48;
+        if (profilePicture) {
+            return `<img src="${profilePicture}" class="w-${Math.round(dimension/4)*1} h-${Math.round(dimension/4)*1} rounded-full object-cover" alt="" onerror="this.onerror=null;this.src='https://placehold.co/${dimension}x${dimension}/E2E8F0/4A5568?text=${(username||'?').charAt(0)}'">`;
+        }
+        // Inline SVG user icon fallback
+        return `
+            <svg width="${dimension}" height="${dimension}" viewBox="0 0 24 24" fill="#CBD5E1" xmlns="http://www.w3.org/2000/svg" class="rounded-full">
+                <circle cx="12" cy="12" r="12" fill="#E5E7EB"/>
+                <circle cx="12" cy="8" r="4" fill="#CBD5E1"/>
+                <path d="M4 20c1.5-4 6-5 8-5s6 1 8 5" fill="#CBD5E1"/>
+            </svg>
+        `;
+    }
+
     createPostElement(post, currentUser) {
         const isLiked = post.likes.includes(currentUser._id);
-        const placeholderAvatar = `https://placehold.co/48x48/E2E8F0/4A5568?text=${post.user.username.charAt(0)}`;
+        const avatarHTML = this.renderAvatar(post.user.username, post.user.profilePicture, 48);
         
         return `
             <article class="glass-card rounded-2xl mb-8 overflow-hidden" data-post-id="${post._id}">
                 <div class="flex items-center p-4 gap-4">
-                    <img src="${post.user.profilePicture || placeholderAvatar}" class="w-12 h-12 rounded-full object-cover" alt="User Avatar">
+                    ${avatarHTML}
                     <div><p class="font-bold">${post.user.username}</p><p class="text-xs text-gray-500">${new Date(post.createdAt).toLocaleString()}</p></div>
                 </div>
                 <img src="${post.image}" class="w-full h-auto max-h-[600px] object-cover" alt="Post Image">
@@ -153,7 +168,7 @@ class UIHandler {
             </article>`;
     }
     
-    createProfileElement(user, posts) {
+    createProfileElement(user, posts, canEdit = false) {
         const placeholderAvatar = `https://placehold.co/128x128/E2E8F0/4A5568?text=${user.username.charAt(0)}`;
         return `
             <div class="glass-card rounded-2xl overflow-hidden">
@@ -162,9 +177,7 @@ class UIHandler {
                     <div class="absolute -top-16 left-6">
                         <img src="${user.profilePicture || placeholderAvatar}" class="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover profile-picture">
                     </div>
-                    <div class="flex justify-end">
-                        <button id="edit-profile-btn-action" class="bg-gray-200 font-semibold px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors">Edit Profile</button>
-                    </div>
+                    ${canEdit ? `<div class=\"flex justify-end\"><button id=\"edit-profile-btn-action\" class=\"bg-gray-200 font-semibold px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors\">Edit Profile</button></div>` : ''}
                     <div class="pt-10">
                         <h2 class="text-2xl font-bold">${user.username}</h2>
                         <p class="text-gray-600">${user.name || ''}</p>
@@ -320,20 +333,71 @@ class UIHandler {
         container.innerHTML = `
             <div class="space-y-3">
                 ${users.map(user => {
-                    const placeholderAvatar = `https://placehold.co/40x40/E2E8F0/4A5568?text=${user.username.charAt(0)}`;
+                    const avatar = this.renderAvatar(user.username, user.profilePicture, 40);
                     return `
-                        <div class="flex items-center gap-4 p-2 rounded-lg hover:bg-gray-100 cursor-pointer">
-                            <img src="${user.profilePicture || placeholderAvatar}" class="w-10 h-10 rounded-full object-cover">
+                        <div class="search-result-item flex items-center gap-4 p-2 rounded-lg hover:bg-gray-100 cursor-pointer" data-username="${user.username}" data-user-id="${user._id}">
+                            ${avatar}
                             <div>
                                 <p class="font-bold">${user.username}</p>
                                 <p class="text-sm text-gray-500">${user.name || ''}</p>
                             </div>
-                            <button class="ml-auto bg-blue-500 text-white font-semibold px-3 py-1 rounded-lg text-sm hover:bg-blue-600">Follow</button>
+                            <button class="follow-btn ml-auto bg-blue-500 text-white font-semibold px-3 py-1 rounded-lg text-sm hover:bg-blue-600" data-user-id="${user._id}">Follow</button>
                         </div>
                     `;
                 }).join('')}
             </div>
         `;
+
+        // Open profile on item click (excluding follow button)
+        container.querySelectorAll('.search-result-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                if (e.target.closest('.follow-btn')) return; // ignore when clicking follow
+                const username = item.getAttribute('data-username');
+                this.closeModal();
+                this.loadUserProfileByUsername(username);
+            });
+        });
+
+        // Follow action
+        container.querySelectorAll('.follow-btn').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const userId = button.getAttribute('data-user-id');
+                button.disabled = true;
+                try {
+                    await api.followUser(userId);
+                    button.textContent = 'Following';
+                    button.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                    button.classList.add('bg-gray-300');
+                } catch (error) {
+                    console.error('Failed to follow:', error);
+                    button.disabled = false;
+                }
+            });
+        });
+    }
+
+    async loadUserProfileByUsername(username) {
+        // Activate profile section in nav
+        this.navLinks.forEach(link => link.classList.toggle('active', link.id === 'profile-btn'));
+        Object.values(this.sections).forEach(section => section.classList.add('hidden'));
+        const sectionToShow = this.sections.profile;
+        sectionToShow.classList.remove('hidden');
+
+        this.sections.profile.innerHTML = '<p class="text-center p-8">Loading profile...</p>';
+        try {
+            const [currentUser, user] = await Promise.all([
+                api.getCurrentUser(),
+                api.getUserProfile(username)
+            ]);
+            const posts = await api.getUserPosts(user._id);
+            const canEdit = currentUser && currentUser._id === user._id;
+            this.sections.profile.innerHTML = this.createProfileElement(user, posts, canEdit);
+            this.initializeProfileInteractions(user, posts);
+        } catch (error) {
+            console.error('Error loading user profile:', error);
+            this.sections.profile.innerHTML = '<p class="text-center p-8 text-red-500">Could not load user profile.</p>';
+        }
     }
 
     createModal(title, content) {
@@ -395,6 +459,7 @@ class UIHandler {
                     try {
                         const post = await api.getPost(postId);
                         commentsContainer.innerHTML = this.createCommentsSection(post.comments);
+                        this.attachCommentFormListeners(commentsContainer, postId);
                     } catch (error) {
                         commentsContainer.innerHTML = `<p class="text-sm text-red-500">Could not load comments.</p>`;
                     }
@@ -425,10 +490,33 @@ class UIHandler {
             </div>`;
     }
 
-    initializeProfileInteractions(user, posts) {
-        document.getElementById('edit-profile-btn-action').addEventListener('click', () => {
-            this.renderEditProfileModal(user);
+    attachCommentFormListeners(container, postId) {
+        const form = container.querySelector('.add-comment-form');
+        if (!form) return;
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = form.querySelector('input[type="text"]');
+            const text = input.value.trim();
+            if (!text) return;
+            form.querySelector('button[type="submit"]').disabled = true;
+            try {
+                const comments = await api.addComment(postId, text);
+                container.innerHTML = this.createCommentsSection(comments);
+                this.attachCommentFormListeners(container, postId);
+            } catch (error) {
+                console.error('Failed to add comment:', error);
+                form.querySelector('button[type="submit"]').disabled = false;
+            }
         });
+    }
+
+    initializeProfileInteractions(user, posts) {
+        const editBtn = document.getElementById('edit-profile-btn-action');
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                this.renderEditProfileModal(user);
+            });
+        }
 
         const tabs = document.querySelectorAll('.profile-tab');
         const contentArea = document.getElementById('profile-content-area');
