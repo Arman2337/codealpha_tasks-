@@ -8,7 +8,8 @@ const API_ENDPOINTS = {
     me: `${API_BASE_URL}/auth/me`,
 
     // User endpoints
-    getAllUsers: `${API_BASE_URL}/users`, // <-- ADD THIS LINE
+    getAllUsers: `${API_BASE_URL}/users`,
+    searchUsers: (q) => `${API_BASE_URL}/users?q=${encodeURIComponent(q)}`,
     userProfile: (username) => `${API_BASE_URL}/users/${username}`,
     updateProfile: `${API_BASE_URL}/users/profile`,
     followUser: (userId) => `${API_BASE_URL}/users/follow/${userId}`,
