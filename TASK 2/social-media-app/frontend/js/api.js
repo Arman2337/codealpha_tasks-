@@ -92,6 +92,10 @@ class ApiService {
         return this.fetch(API_ENDPOINTS.userProfile(username));
     }
 
+    async searchUsers(query) {
+        return this.fetch(API_ENDPOINTS.searchUsers(query));
+    }
+
     async updateProfile(profileData) {
         const formData = new FormData();
         
