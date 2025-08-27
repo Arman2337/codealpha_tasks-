@@ -3,6 +3,31 @@ const User = require('../models/User');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
+// List/search users
+router.get('/', auth, async (req, res) => {
+    try {
+        const { q } = req.query;
+        const criteria = q
+            ? {
+                $or: [
+                    { username: { $regex: q, $options: 'i' } },
+                    { email: { $regex: q, $options: 'i' } }
+                ]
+            }
+            : {};
+
+        const users = await User.find(criteria)
+            .select('username profilePicture bio name');
+
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error searching users',
+            error: error.message
+        });
+    }
+});
+
 // Get user profile
 router.get('/:username', auth, async (req, res) => {
     try {
