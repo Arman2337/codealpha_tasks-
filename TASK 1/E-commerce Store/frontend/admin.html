@@ -24,50 +24,70 @@
             </button>
         </div>
 
-        <div id="product-form-container" class="product-form" style="display: none;">
-            <h2 id="form-title">Add New Product</h2>
-            <form id="add-product-form">
-                <input type="hidden" id="product-id">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="name">Product Name *</label>
-                        <input type="text" id="name" required>
+    <!-- Product Form Modal -->
+    <div id="product-form-modal" class="product-form-modal">
+        <div class="product-form-modal-content">
+            <div class="product-form-modal-header">
+                <h2 id="form-title">Add New Product</h2>
+                <button class="modal-close-btn" id="form-modal-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="product-form-modal-body">
+                <form id="add-product-form">
+                    <input type="hidden" id="product-id">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Product Name *</label>
+                            <input type="text" id="name" required placeholder="Enter product name">
+                        </div>
+                        <div class="form-group">
+                            <label for="price">Price *</label>
+                            <input type="number" id="price" step="0.01" min="0" required placeholder="0.00">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="price">Price *</label>
-                        <input type="number" id="price" step="0.01" min="0" required>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="category">Category</label>
+                            <select id="category">
+                                <option value="electronics">Electronics</option>
+                                <option value="clothing">Clothing</option>
+                                <option value="books">Books</option>
+                                <option value="home">Home</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="stock">Stock Quantity *</label>
+                            <input type="number" id="stock" min="0" required placeholder="0">
+                        </div>
                     </div>
-                </div>
-                <div class="form-row">
+                    
                     <div class="form-group">
-                        <label for="category">Category</label>
-                        <select id="category">
-                            <option value="electronics">Electronics</option>
-                            <option value="clothing">Clothing</option>
-                            <option value="books">Books</option>
-                            <option value="home">Home</option>
-                            <option value="other">Other</option>
-                        </select>
+                        <label for="description">Description</label>
+                        <textarea id="description" rows="4" placeholder="Enter product description"></textarea>
                     </div>
+                    
                     <div class="form-group">
-                        <label for="stock">Stock Quantity *</label>
-                        <input type="number" id="stock" min="0" required>
+                        <label for="image">Image URL</label>
+                        <input type="url" id="image" placeholder="https://example.com/image.jpg">
+                        <small class="form-help">Enter a valid image URL or leave empty for placeholder</small>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="description">Description</label>
-                    <textarea id="description"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="image">Image URL</label>
-                    <input type="url" id="image" placeholder="https://...">
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Save Product</button>
-                    <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
-                </div>
-            </form>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="save-product-btn">
+                            <i class="fas fa-save"></i> Save Product
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="cancel-btn">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
+    </div>
         
         <div class="search-filters">
             <input type="text" id="search-input" placeholder="Search products...">
