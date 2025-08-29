@@ -35,6 +35,32 @@
             </div>
     </main>
 
+    <!-- Product Detail Modal -->
+    <div id="product-modal" class="product-modal">
+        <div class="product-modal-content">
+            <div class="product-modal-header">
+                <h2 id="modal-product-title"></h2>
+                <button class="modal-close-btn" id="modal-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="product-modal-body">
+                <div class="product-modal-image">
+                    <img id="modal-product-image" src="" alt="">
+                </div>
+                <div class="product-modal-details">
+                    <div class="product-modal-price" id="modal-product-price"></div>
+                    <div class="product-modal-category" id="modal-product-category"></div>
+                    <div class="product-modal-stock" id="modal-product-stock"></div>
+                    <div class="product-modal-description" id="modal-product-description"></div>
+                    <button class="btn btn-primary modal-add-to-cart" id="modal-add-to-cart">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="./js/main.js" type="module"></script>
 </body>
 </html>
